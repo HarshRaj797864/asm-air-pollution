@@ -1,0 +1,35 @@
+{
+  "threshold_ugm3": 250,
+  "fit_period": "2016-01-01..2025-12-31",
+  "unit": "per valid day",
+  "hpp_lambda": 0.087464,
+  "nhpp_lambda_by_month": {
+    "Jan": 0.296167,
+    "Feb": 0.018382,
+    "Mar": 0.0,
+    "Apr": 0.0,
+    "May": 0.010204,
+    "Jun": 0.0,
+    "Jul": 0.0,
+    "Aug": 0.0,
+    "Sep": 0.0,
+    "Oct": 0.038462,
+    "Nov": 0.344595,
+    "Dec": 0.312292
+  },
+  "episode_onset_rate_by_month": {
+    "Jan": 0.10453,
+    "Feb": 0.018382,
+    "Mar": 0.0,
+    "Apr": 0.0,
+    "May": 0.010204,
+    "Jun": 0.0,
+    "Jul": 0.0,
+    "Aug": 0.0,
+    "Sep": 0.0,
+    "Oct": 0.020979,
+    "Nov": 0.114865,
+    "Dec": 0.112957
+  },
+  "episode_continue_prob_q": 0.626667
+}

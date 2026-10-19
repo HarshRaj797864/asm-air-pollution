@@ -1,0 +1,199 @@
+{
+  "station": "R K Puram, Delhi - DPCC (CPCB site 124)",
+  "hourly_rows": 135168,
+  "study_window": [
+    "2016-01-01",
+    "2025-12-31"
+  ],
+  "holdout_window": [
+    "2026-01-01",
+    "2026-09-30"
+  ],
+  "study_days": 3653,
+  "study_observed": 3236,
+  "study_interpolated": 194,
+  "study_missing": 223,
+  "pm25_mean": 111.9,
+  "pm25_median": 83.9,
+  "pm25_max": 729.3,
+  "coverage_by_year": [
+    {
+      "year": 2011,
+      "observed": 40.0,
+      "interpolated": 9.4,
+      "missing": 50.6,
+      "days": 245
+    },
+    {
+      "year": 2012,
+      "observed": 53.0,
+      "interpolated": 12.3,
+      "missing": 34.7,
+      "days": 366
+    },
+    {
+      "year": 2013,
+      "observed": 16.7,
+      "interpolated": 6.0,
+      "missing": 77.3,
+      "days": 365
+    },
+    {
+      "year": 2014,
+      "observed": 0.0,
+      "interpolated": 0.0,
+      "missing": 100.0,
+      "days": 365
+    },
+    {
+      "year": 2015,
+      "observed": 61.4,
+      "interpolated": 6.0,
+      "missing": 32.6,
+      "days": 365
+    },
+    {
+      "year": 2016,
+      "observed": 77.3,
+      "interpolated": 6.3,
+      "missing": 16.4,
+      "days": 366
+    },
+    {
+      "year": 2017,
+      "observed": 80.5,
+      "interpolated": 6.0,
+      "missing": 13.4,
+      "days": 365
+    },
+    {
+      "year": 2018,
+      "observed": 94.0,
+      "interpolated": 4.9,
+      "missing": 1.1,
+      "days": 365
+    },
+    {
+      "year": 2019,
+      "observed": 72.6,
+      "interpolated": 9.6,
+      "missing": 17.8,
+      "days": 365
+    },
+    {
+      "year": 2020,
+      "observed": 90.4,
+      "interpolated": 5.2,
+      "missing": 4.4,
+      "days": 366
+    },
+    {
+      "year": 2021,
+      "observed": 90.4,
+      "interpolated": 8.2,
+      "missing": 1.4,
+      "days": 365
+    },
+    {
+      "year": 2022,
+      "observed": 96.2,
+      "interpolated": 3.8,
+      "missing": 0.0,
+      "days": 365
+    },
+    {
+      "year": 2023,
+      "observed": 94.8,
+      "interpolated": 3.3,
+      "missing": 1.9,
+      "days": 365
+    },
+    {
+      "year": 2024,
+      "observed": 95.6,
+      "interpolated": 2.2,
+      "missing": 2.2,
+      "days": 366
+    },
+    {
+      "year": 2025,
+      "observed": 94.0,
+      "interpolated": 3.6,
+      "missing": 2.5,
+      "days": 365
+    },
+    {
+      "year": 2026,
+      "observed": 92.7,
+      "interpolated": 4.8,
+      "missing": 2.6,
+      "days": 273
+    }
+  ],
+  "category_table": [
+    {
+      "aqi_category": "Good",
+      "days": 397,
+      "% of days": 11.6
+    },
+    {
+      "aqi_category": "Satisfactory",
+      "days": 802,
+      "% of days": 23.4
+    },
+    {
+      "aqi_category": "Moderate",
+      "days": 620,
+      "% of days": 18.1
+    },
+    {
+      "aqi_category": "Poor",
+      "days": 425,
+      "% of days": 12.4
+    },
+    {
+      "aqi_category": "Very Poor",
+      "days": 886,
+      "% of days": 25.8
+    },
+    {
+      "aqi_category": "Severe",
+      "days": 300,
+      "% of days": 8.7
+    }
+  ],
+  "threshold_table": [
+    {
+      "threshold": 60,
+      "event days": 2231,
+      "% of valid days": 65.0,
+      "per year": 223.1,
+      "episodes": 185,
+      "mean episode length (days)": 12.06
+    },
+    {
+      "threshold": 90,
+      "event days": 1611,
+      "% of valid days": 47.0,
+      "per year": 161.1,
+      "episodes": 186,
+      "mean episode length (days)": 8.66
+    },
+    {
+      "threshold": 120,
+      "event days": 1186,
+      "% of valid days": 34.6,
+      "per year": 118.6,
+      "episodes": 160,
+      "mean episode length (days)": 7.41
+    },
+    {
+      "threshold": 250,
+      "event days": 300,
+      "% of valid days": 8.7,
+      "per year": 30.0,
+      "episodes": 112,
+      "mean episode length (days)": 2.68
+    }
+  ]
+}

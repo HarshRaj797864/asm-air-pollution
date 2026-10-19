@@ -1,0 +1,587 @@
+{
+  "threshold": 250,
+  "hpp": {
+    "N": 300,
+    "T": 3430,
+    "lambda_day": 0.087464,
+    "ci_day": [
+      0.077845,
+      0.097942
+    ],
+    "lambda_year": 31.946064,
+    "ci_year": [
+      28.432985,
+      35.773322
+    ],
+    "mean_wait_days": 11.433333,
+    "monthly_mean": 2.5,
+    "monthly_var": 21.428571,
+    "dispersion": 8.109325,
+    "dispersion_p": 0.0
+  },
+  "gaps": {
+    "n": 284,
+    "mean": 5.588028,
+    "median": 1.0,
+    "share_1day": 0.661972,
+    "ks_D": 0.584485,
+    "ks_p": 0.0
+  },
+  "model_comparison": [
+    {
+      "model": "HPP",
+      "params": 1.0,
+      "loglik": -462.781937,
+      "AIC": 927.563874,
+      "dispersion": 8.109325,
+      "dispersion p": 0.0
+    },
+    {
+      "model": "Seasonal NHPP",
+      "params": 4.0,
+      "loglik": -217.662952,
+      "AIC": 443.325904,
+      "dispersion": 3.449494,
+      "dispersion p": 0.0
+    },
+    {
+      "model": "Monthly NHPP",
+      "params": 12.0,
+      "loglik": -122.896527,
+      "AIC": 269.793053,
+      "dispersion": 1.771792,
+      "dispersion p": 0.000411
+    }
+  ],
+  "month_rates": [
+    {
+      "month": "Jan",
+      "events": 85,
+      "valid_days": 287,
+      "rate_per_day": 0.296167,
+      "ci_lo": 0.236568,
+      "ci_hi": 0.366215,
+      "expected per month": 9.003484
+    },
+    {
+      "month": "Feb",
+      "events": 5,
+      "valid_days": 272,
+      "rate_per_day": 0.018382,
+      "ci_lo": 0.005969,
+      "ci_hi": 0.042898,
+      "expected per month": 0.558824
+    },
+    {
+      "month": "Mar",
+      "events": 0,
+      "valid_days": 286,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012898,
+      "expected per month": 0.0
+    },
+    {
+      "month": "Apr",
+      "events": 0,
+      "valid_days": 258,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.014298,
+      "expected per month": 0.0
+    },
+    {
+      "month": "May",
+      "events": 3,
+      "valid_days": 294,
+      "rate_per_day": 0.010204,
+      "ci_lo": 0.002104,
+      "ci_hi": 0.029821,
+      "expected per month": 0.310204
+    },
+    {
+      "month": "Jun",
+      "events": 0,
+      "valid_days": 288,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012809,
+      "expected per month": 0.0
+    },
+    {
+      "month": "Jul",
+      "events": 0,
+      "valid_days": 277,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.013317,
+      "expected per month": 0.0
+    },
+    {
+      "month": "Aug",
+      "events": 0,
+      "valid_days": 286,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012898,
+      "expected per month": 0.0
+    },
+    {
+      "month": "Sep",
+      "events": 0,
+      "valid_days": 299,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012337,
+      "expected per month": 0.0
+    },
+    {
+      "month": "Oct",
+      "events": 11,
+      "valid_days": 286,
+      "rate_per_day": 0.038462,
+      "ci_lo": 0.0192,
+      "ci_hi": 0.068818,
+      "expected per month": 1.169231
+    },
+    {
+      "month": "Nov",
+      "events": 102,
+      "valid_days": 296,
+      "rate_per_day": 0.344595,
+      "ci_lo": 0.280976,
+      "ci_hi": 0.418314,
+      "expected per month": 10.475676
+    },
+    {
+      "month": "Dec",
+      "events": 94,
+      "valid_days": 301,
+      "rate_per_day": 0.312292,
+      "ci_lo": 0.252364,
+      "ci_hi": 0.382167,
+      "expected per month": 9.493688
+    }
+  ],
+  "season_rates": [
+    {
+      "season": "Winter",
+      "events": 184,
+      "valid_days": 860,
+      "rate_per_day": 0.213953,
+      "ci_lo": 0.184155,
+      "ci_hi": 0.247201,
+      "expected per year": 19.32
+    },
+    {
+      "season": "Summer",
+      "events": 3,
+      "valid_days": 838,
+      "rate_per_day": 0.00358,
+      "ci_lo": 0.000738,
+      "ci_hi": 0.010462,
+      "expected per year": 0.329356
+    },
+    {
+      "season": "Monsoon",
+      "events": 0,
+      "valid_days": 1150,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.003208,
+      "expected per year": 0.0
+    },
+    {
+      "season": "Post-monsoon",
+      "events": 113,
+      "valid_days": 582,
+      "rate_per_day": 0.194158,
+      "ci_lo": 0.160014,
+      "ci_hi": 0.233432,
+      "expected per year": 11.843643
+    }
+  ],
+  "year_effect": {
+    "LR": 24.677754,
+    "df": 9,
+    "p_poisson": 0.003349,
+    "phi": 1.540279,
+    "p_quasi": 0.098795,
+    "trend_pct_per_year": -0.427319,
+    "trend_ci": [
+      -5.601431,
+      5.030392
+    ]
+  },
+  "yearly_OE": [
+    {
+      "year": 2016,
+      "O": 40,
+      "E": 27.022186,
+      "ratio": 1.480265,
+      "lo": 1.057523,
+      "hi": 2.015701
+    },
+    {
+      "year": 2017,
+      "O": 29,
+      "E": 26.699256,
+      "ratio": 1.086173,
+      "lo": 0.727427,
+      "hi": 1.559925
+    },
+    {
+      "year": 2018,
+      "O": 29,
+      "E": 31.223426,
+      "ratio": 0.92879,
+      "lo": 0.622025,
+      "hi": 1.333897
+    },
+    {
+      "year": 2019,
+      "O": 22,
+      "E": 29.312495,
+      "ratio": 0.750533,
+      "lo": 0.470355,
+      "hi": 1.136316
+    },
+    {
+      "year": 2020,
+      "O": 23,
+      "E": 31.241808,
+      "ratio": 0.736193,
+      "lo": 0.466683,
+      "hi": 1.104651
+    },
+    {
+      "year": 2021,
+      "O": 28,
+      "E": 29.742589,
+      "ratio": 0.941411,
+      "lo": 0.625561,
+      "hi": 1.360601
+    },
+    {
+      "year": 2022,
+      "O": 16,
+      "E": 31.223426,
+      "ratio": 0.512436,
+      "lo": 0.292901,
+      "hi": 0.832164
+    },
+    {
+      "year": 2023,
+      "O": 44,
+      "E": 31.223426,
+      "ratio": 1.409198,
+      "lo": 1.023926,
+      "hi": 1.891783
+    },
+    {
+      "year": 2024,
+      "O": 34,
+      "E": 31.087962,
+      "ratio": 1.093671,
+      "lo": 0.757399,
+      "hi": 1.528295
+    },
+    {
+      "year": 2025,
+      "O": 35,
+      "E": 31.223426,
+      "ratio": 1.120953,
+      "lo": 0.780785,
+      "hi": 1.558975
+    }
+  ],
+  "episodes": {
+    "n": 112,
+    "mean_length": 2.678571,
+    "max_length": 17,
+    "q_hat": 0.626667,
+    "EL2_over_EL": 5.32,
+    "geom_chi2": 11.936629,
+    "geom_p": 0.017829,
+    "onset_dispersion": 0.887416,
+    "onset_dispersion_p": 0.706675
+  },
+  "onset_rates": [
+    {
+      "month": 1,
+      "events": 30,
+      "valid_days": 287,
+      "rate_per_day": 0.10453,
+      "ci_lo": 0.070526,
+      "ci_hi": 0.149223
+    },
+    {
+      "month": 2,
+      "events": 5,
+      "valid_days": 272,
+      "rate_per_day": 0.018382,
+      "ci_lo": 0.005969,
+      "ci_hi": 0.042898
+    },
+    {
+      "month": 3,
+      "events": 0,
+      "valid_days": 286,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012898
+    },
+    {
+      "month": 4,
+      "events": 0,
+      "valid_days": 258,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.014298
+    },
+    {
+      "month": 5,
+      "events": 3,
+      "valid_days": 294,
+      "rate_per_day": 0.010204,
+      "ci_lo": 0.002104,
+      "ci_hi": 0.029821
+    },
+    {
+      "month": 6,
+      "events": 0,
+      "valid_days": 288,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012809
+    },
+    {
+      "month": 7,
+      "events": 0,
+      "valid_days": 277,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.013317
+    },
+    {
+      "month": 8,
+      "events": 0,
+      "valid_days": 286,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012898
+    },
+    {
+      "month": 9,
+      "events": 0,
+      "valid_days": 299,
+      "rate_per_day": 0.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.012337
+    },
+    {
+      "month": 10,
+      "events": 6,
+      "valid_days": 286,
+      "rate_per_day": 0.020979,
+      "ci_lo": 0.007699,
+      "ci_hi": 0.045662
+    },
+    {
+      "month": 11,
+      "events": 34,
+      "valid_days": 296,
+      "rate_per_day": 0.114865,
+      "ci_lo": 0.079547,
+      "ci_hi": 0.160512
+    },
+    {
+      "month": 12,
+      "events": 34,
+      "valid_days": 301,
+      "rate_per_day": 0.112957,
+      "ci_lo": 0.078226,
+      "ci_hi": 0.157846
+    }
+  ],
+  "time_rescaling": {
+    "HPP \u2013 Severe days": {
+      "n": 299,
+      "ks_D": 0.509301,
+      "ks_p": 0.0
+    },
+    "NHPP \u2013 Severe days": {
+      "n": 299,
+      "ks_D": 0.227264,
+      "ks_p": 0.0
+    },
+    "NHPP \u2013 episode onsets": {
+      "n": 111,
+      "ks_D": 0.16539,
+      "ks_p": 0.004023
+    }
+  },
+  "simulation": [
+    {
+      "model": "HPP",
+      "total_mean": 299.5935,
+      "total_q025": 265.975,
+      "total_q975": 334.0,
+      "D_mean": 10.664781,
+      "D_q025": 7.029744,
+      "D_q975": 15.823799,
+      "P(D_sim >= D_obs)": 1.0
+    },
+    {
+      "model": "Monthly NHPP",
+      "total_mean": 300.6675,
+      "total_q025": 266.0,
+      "total_q975": 335.0,
+      "D_mean": 1.11782,
+      "D_q025": 0.697409,
+      "D_q975": 1.733417,
+      "P(D_sim >= D_obs)": 0.021
+    },
+    {
+      "model": "Compound NHPP",
+      "total_mean": 299.239,
+      "total_q025": 229.975,
+      "total_q975": 375.0,
+      "D_mean": 8.109879,
+      "D_q025": 3.035391,
+      "D_q975": 18.214849,
+      "P(D_sim >= D_obs)": 0.9995
+    }
+  ],
+  "simulation_observed_D": 1.771792,
+  "oos_year": [
+    {
+      "year": "2023",
+      "observed": 44,
+      "HPP mean": 28.4,
+      "HPP 95% PI": "[18, 39]",
+      "HPP inside": false,
+      "Monthly NHPP mean": 28.5,
+      "Monthly NHPP 95% PI": "[19, 40]",
+      "Monthly NHPP inside": false,
+      "Compound NHPP mean": 27.8,
+      "Compound NHPP 95% PI": "[9, 51]",
+      "Compound NHPP inside": true
+    },
+    {
+      "year": "2024",
+      "observed": 34,
+      "HPP mean": 28.3,
+      "HPP 95% PI": "[19, 39]",
+      "HPP inside": true,
+      "Monthly NHPP mean": 28.2,
+      "Monthly NHPP 95% PI": "[18, 40]",
+      "Monthly NHPP inside": true,
+      "Compound NHPP mean": 28.2,
+      "Compound NHPP 95% PI": "[10, 53]",
+      "Compound NHPP inside": true
+    },
+    {
+      "year": "2025",
+      "observed": 35,
+      "HPP mean": 28.2,
+      "HPP 95% PI": "[19, 39]",
+      "HPP inside": true,
+      "Monthly NHPP mean": 28.7,
+      "Monthly NHPP 95% PI": "[18, 39]",
+      "Monthly NHPP inside": true,
+      "Compound NHPP mean": 28.3,
+      "Compound NHPP 95% PI": "[9, 54]",
+      "Compound NHPP inside": true
+    },
+    {
+      "year": "2026 (Jan\u2013Sep)",
+      "observed": 7,
+      "HPP mean": 21.1,
+      "HPP 95% PI": "[13, 31]",
+      "HPP inside": false,
+      "Monthly NHPP mean": 10.1,
+      "Monthly NHPP 95% PI": "[5, 17]",
+      "Monthly NHPP inside": true,
+      "Compound NHPP mean": 10.0,
+      "Compound NHPP 95% PI": "[0, 25]",
+      "Compound NHPP inside": true
+    }
+  ],
+  "oos_month": [
+    {
+      "model": "HPP",
+      "95% PI coverage (months)": 0.8,
+      "mean log score": -3.355256,
+      "mean abs error": 3.763578
+    },
+    {
+      "model": "Monthly NHPP",
+      "95% PI coverage (months)": 0.955556,
+      "mean log score": -0.989851,
+      "mean abs error": 1.092744
+    },
+    {
+      "model": "Compound NHPP",
+      "95% PI coverage (months)": 0.977778,
+      "mean log score": -1.049635,
+      "mean abs error": 1.315744
+    }
+  ],
+  "train_params": {
+    "lambda": 0.079304,
+    "q": 0.636364,
+    "lambda_m": {
+      "1": 0.298969,
+      "2": 0.026738,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.004975,
+      "6": 0.0,
+      "7": 0.0,
+      "8": 0.0,
+      "9": 0.0,
+      "10": 0.045685,
+      "11": 0.26699,
+      "12": 0.283654
+    },
+    "mu_m": {
+      "1": 0.087629,
+      "2": 0.026738,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.004975,
+      "6": 0.0,
+      "7": 0.0,
+      "8": 0.0,
+      "9": 0.0,
+      "10": 0.025381,
+      "11": 0.082524,
+      "12": 0.110577
+    }
+  },
+  "sensitivity": [
+    {
+      "threshold": 120,
+      "events": 1186,
+      "rate/day": 0.345773,
+      "per year": 126.29344,
+      "HPP dispersion": 11.963796,
+      "NHPP dispersion": 2.408643,
+      "LR HPP vs NHPP": 1401.162564,
+      "episodes": 160,
+      "mean episode length": 7.4125
+    },
+    {
+      "threshold": 250,
+      "events": 300,
+      "rate/day": 0.087464,
+      "per year": 31.946064,
+      "HPP dispersion": 8.109325,
+      "NHPP dispersion": 1.771792,
+      "LR HPP vs NHPP": 679.770821,
+      "episodes": 112,
+      "mean episode length": 2.678571
+    }
+  ]
+}
