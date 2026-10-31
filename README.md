@@ -7,7 +7,7 @@ CPCB hourly PM2.5 data from **R K Puram, Delhi (DPCC, site 124)**, 2016–2026.
 |---|---|---|
 | Data cleaning, EDA, Poisson process | Member A | `01_data_cleaning_eda.ipynb`, `02_poisson_model.ipynb` |
 | Markov chain on AQI categories | Member B | `03_markov_chain.ipynb` |
-| Simulation engine + validation | Member C | `04_simulation_validation.ipynb` (to do) |
+| Simulation engine + validation | Member C | `04_simulation_validation.ipynb` |
 
 ## Layout
 
@@ -15,9 +15,9 @@ CPCB hourly PM2.5 data from **R K Puram, Delhi (DPCC, site 124)**, 2016–2026.
 data/raw/      CPCB hourly files, one per year, unchanged as downloaded
 data/clean/    delhi_rkpuram_daily.csv: the shared daily dataset (use this)
 notebooks/     analysis notebooks, run from inside this folder
-figures/       all saved plots (A01-A15 = Member A, B01-B07 = Member B)
-results/       JSON outputs: summaries, fitted parameters
-report/        report section drafts
+figures/       all saved plots (A01-A15 = Member A, B01-B07 = Member B, C01-C08 = Member C)
+results/       JSON outputs: summaries, fitted parameters, simulation & validation results
+report/        report section drafts (memberA, memberB, memberC)
 ```
 
 ## Setup
@@ -73,6 +73,17 @@ Full write-up: `report/memberA_sections.md`.
 * `results/markov_params.json` has the all-year, seasonal and monthly transition matrices for the simulation part.
 
 Full write-up: `report/memberB_sections.md`.
+
+## Key results (Member C, Simulation engine & validation)
+
+* **Simulation Engine**: Built `StochasticAirQualitySimulator` in Python; verified exact asymptotic parameter recovery ($O(N^{-1/2})$ standard error decay, 95.0 % empirical CI coverage).
+* **Dispersion Paradox Resolved**: The seasonal Markov chain reproduces day-to-day clustering without unbounded burst stacking, naturally capturing non-overlapping multi-day spells ($D_{\text{obs}} = 1.77$).
+* **Episode Survival**: Simulated Markov episode lengths match the empirical survival curve $P(L \ge k)$ of the 112 real episodes ($KS = 0.0895, p = 0.312$); Compound Poisson is strongly rejected ($p < 10^{-50}$).
+* **Extreme Spells**: Under the Markov model, the 10-year return level of maximum winter spell length is 9 days (vs 3 days under independent NHPP), closely matching Delhi's historical maximums (17 and 10 days).
+* **Multi-Step Forecast Verification**: The Markov chain outperforms NHPP up to $h=3$ days (Brier 0.0508 vs 0.0598 at $h=1$, AUC 0.931 vs 0.897) and exhibits smooth Chapman–Kolmogorov memory decay toward seasonal stationary probabilities over 2 weeks.
+* **GRAP Policy Counterfactuals**: Counterfactual simulations of Delhi's Graded Response Action Plan show that reducing Severe persistence by 15 % cuts acute crises ($\ge 5$ days) by 45.5 %; a combined package reduces winter Severe days by 31.3 % and 5-day crises by 56.7 %.
+
+Full write-up: `report/memberC_sections.md`.
 
 ## Data source
 

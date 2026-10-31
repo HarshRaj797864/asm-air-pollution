@@ -1,0 +1,122 @@
+{
+  "multistep_validation": [
+    {
+      "horizon": 1,
+      "n_samples": 1332,
+      "brier_mc": 0.050836,
+      "brier_nhpp": 0.059816,
+      "brier_clim": 0.082261,
+      "brier_persist": 0.070571,
+      "bss_mc": 0.382023,
+      "bss_nhpp": 0.272859,
+      "auc_mc": 0.931326,
+      "auc_nhpp": 0.897356
+    },
+    {
+      "horizon": 2,
+      "n_samples": 1326,
+      "brier_mc": 0.060756,
+      "brier_nhpp": 0.059714,
+      "brier_clim": 0.081966,
+      "brier_persist": 0.097285,
+      "bss_mc": 0.258762,
+      "bss_nhpp": 0.271473,
+      "auc_mc": 0.903824,
+      "auc_nhpp": 0.896396
+    },
+    {
+      "horizon": 3,
+      "n_samples": 1320,
+      "brier_mc": 0.062298,
+      "brier_nhpp": 0.059612,
+      "brier_clim": 0.081667,
+      "brier_persist": 0.101515,
+      "bss_mc": 0.237171,
+      "bss_nhpp": 0.270065,
+      "auc_mc": 0.900036,
+      "auc_nhpp": 0.895418
+    },
+    {
+      "horizon": 5,
+      "n_samples": 1310,
+      "brier_mc": 0.06565,
+      "brier_nhpp": 0.059213,
+      "brier_clim": 0.080946,
+      "brier_persist": 0.109924,
+      "bss_mc": 0.188973,
+      "bss_nhpp": 0.268488,
+      "auc_mc": 0.887826,
+      "auc_nhpp": 0.895165
+    },
+    {
+      "horizon": 7,
+      "n_samples": 1302,
+      "brier_mc": 0.066573,
+      "brier_nhpp": 0.058358,
+      "brier_clim": 0.079444,
+      "brier_persist": 0.12212,
+      "bss_mc": 0.162007,
+      "bss_nhpp": 0.265418,
+      "auc_mc": 0.871127,
+      "auc_nhpp": 0.893984
+    },
+    {
+      "horizon": 10,
+      "n_samples": 1297,
+      "brier_mc": 0.066411,
+      "brier_nhpp": 0.057393,
+      "brier_clim": 0.077755,
+      "brier_persist": 0.124904,
+      "bss_mc": 0.145884,
+      "bss_nhpp": 0.261873,
+      "auc_mc": 0.865379,
+      "auc_nhpp": 0.8921
+    },
+    {
+      "horizon": 14,
+      "n_samples": 1293,
+      "brier_mc": 0.067885,
+      "brier_nhpp": 0.057654,
+      "brier_clim": 0.078639,
+      "brier_persist": 0.133797,
+      "bss_mc": 0.136752,
+      "bss_nhpp": 0.266848,
+      "auc_mc": 0.814126,
+      "auc_nhpp": 0.894544
+    }
+  ],
+  "policy_simulations": [
+    {
+      "Scenario": "Baseline Winter",
+      "mean_sev_days": 18.405667,
+      "std_sev_days": 7.231397,
+      "mean_spells_ge3": 2.688333,
+      "mean_spells_ge5": 1.022,
+      "prob_ge1_crisis5": 0.663333
+    },
+    {
+      "Scenario": "Entry Curb (-20% VP->S)",
+      "mean_sev_days": 15.458,
+      "std_sev_days": 6.845697,
+      "mean_spells_ge3": 2.252667,
+      "mean_spells_ge5": 0.845667,
+      "prob_ge1_crisis5": 0.588333
+    },
+    {
+      "Scenario": "Persistence Curb (-15% S->S)",
+      "mean_sev_days": 15.434667,
+      "std_sev_days": 5.972972,
+      "mean_spells_ge3": 2.020333,
+      "mean_spells_ge5": 0.563667,
+      "prob_ge1_crisis5": 0.442667
+    },
+    {
+      "Scenario": "Combined GRAP Package",
+      "mean_sev_days": 12.872333,
+      "std_sev_days": 5.604466,
+      "mean_spells_ge3": 1.676333,
+      "mean_spells_ge5": 0.459667,
+      "prob_ge1_crisis5": 0.377333
+    }
+  ]
+}

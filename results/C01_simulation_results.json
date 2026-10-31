@@ -1,0 +1,138 @@
+{
+  "parameter_recovery": [
+    {
+      "N": 200,
+      "mean_p_ss": 0.613681,
+      "bias_p_ss": -0.011319,
+      "sd_p_ss": 0.078641,
+      "coverage_p_ss": 0.932,
+      "mean_p_vps": 0.140827,
+      "bias_p_vps": 0.001823,
+      "sd_p_vps": 0.03383,
+      "coverage_p_vps": 0.93
+    },
+    {
+      "N": 500,
+      "mean_p_ss": 0.624767,
+      "bias_p_ss": -0.000233,
+      "sd_p_ss": 0.048494,
+      "coverage_p_ss": 0.944,
+      "mean_p_vps": 0.139845,
+      "bias_p_vps": 0.000841,
+      "sd_p_vps": 0.020591,
+      "coverage_p_vps": 0.956
+    },
+    {
+      "N": 1000,
+      "mean_p_ss": 0.622906,
+      "bias_p_ss": -0.002094,
+      "sd_p_ss": 0.034711,
+      "coverage_p_ss": 0.944,
+      "mean_p_vps": 0.138826,
+      "bias_p_vps": -0.000178,
+      "sd_p_vps": 0.013679,
+      "coverage_p_vps": 0.966
+    },
+    {
+      "N": 2500,
+      "mean_p_ss": 0.624496,
+      "bias_p_ss": -0.000504,
+      "sd_p_ss": 0.020983,
+      "coverage_p_ss": 0.956,
+      "mean_p_vps": 0.138548,
+      "bias_p_vps": -0.000456,
+      "sd_p_vps": 0.008973,
+      "coverage_p_vps": 0.96
+    },
+    {
+      "N": 5000,
+      "mean_p_ss": 0.624732,
+      "bias_p_ss": -0.000268,
+      "sd_p_ss": 0.015483,
+      "coverage_p_ss": 0.938,
+      "mean_p_vps": 0.138997,
+      "bias_p_vps": -7e-06,
+      "sd_p_vps": 0.006545,
+      "coverage_p_vps": 0.95
+    },
+    {
+      "N": 10000,
+      "mean_p_ss": 0.625416,
+      "bias_p_ss": 0.000416,
+      "sd_p_ss": 0.009846,
+      "coverage_p_ss": 0.966,
+      "mean_p_vps": 0.139439,
+      "bias_p_vps": 0.000435,
+      "sd_p_vps": 0.004788,
+      "coverage_p_vps": 0.948
+    }
+  ],
+  "dispersion_comparison": [
+    {
+      "model": "HPP",
+      "total_mean": 299.7695,
+      "total_q025": 267.0,
+      "total_q975": 336.0,
+      "D_mean": 10.602155,
+      "D_median": 10.441603,
+      "D_q025": 7.190509,
+      "D_q975": 15.230926,
+      "P(D_sim >= D_obs)": 1.0
+    },
+    {
+      "model": "Monthly NHPP",
+      "total_mean": 300.654,
+      "total_q025": 269.0,
+      "total_q975": 334.025,
+      "D_mean": 1.107495,
+      "D_median": 1.073327,
+      "D_q025": 0.703231,
+      "D_q975": 1.686465,
+      "P(D_sim >= D_obs)": 0.0145
+    },
+    {
+      "model": "Compound NHPP",
+      "total_mean": 299.6475,
+      "total_q025": 231.0,
+      "total_q975": 379.0,
+      "D_mean": 8.2256,
+      "D_median": 7.248761,
+      "D_q025": 3.035864,
+      "D_q975": 18.868403,
+      "P(D_sim >= D_obs)": 0.9995
+    },
+    {
+      "model": "Seasonal Markov Chain",
+      "total_mean": 286.5675,
+      "total_q025": 228.0,
+      "total_q975": 345.0,
+      "D_mean": 20.326633,
+      "D_median": 19.504402,
+      "D_q025": 9.925117,
+      "D_q975": 35.134542,
+      "P(D_sim >= D_obs)": 1.0
+    },
+    {
+      "model": "Monthly Markov Chain",
+      "total_mean": 298.7185,
+      "total_q025": 245.0,
+      "total_q975": 354.0,
+      "D_mean": 6.760934,
+      "D_median": 5.88374,
+      "D_q025": 2.355426,
+      "D_q975": 15.84753,
+      "P(D_sim >= D_obs)": 0.996
+    }
+  ],
+  "observed_D": 1.771793,
+  "episode_gof_tests": {
+    "markov_ks_statistic": 0.088736,
+    "markov_ks_pvalue": 0.321882,
+    "compound_ks_statistic": 0.577359,
+    "compound_ks_pvalue": 0.0,
+    "real_mean_length": 2.678571,
+    "real_max_length": 17,
+    "markov_mean_length": 2.641552,
+    "markov_max_length": 23
+  }
+}
