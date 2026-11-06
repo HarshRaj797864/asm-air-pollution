@@ -130,97 +130,121 @@ The seasonal first-order chain gives the best next-day forecasts because it uses
 
 ---
 
-## 5. Model III — Simulation and Validation (Rudraksh Kapil)
+## 5. Model III — Simulation Engine & Validation (Rudraksh Kapil)
 
-### 5.1 Simulation Engine
+### 5.1 Engine Design & Parameter Recovery
 
-One engine (`StochasticAirQualitySimulator`, notebook 04) simulates the HPP, monthly and compound NHPPs, and all-year, seasonal and monthly Markov chains on the real 3,653-day calendar with its missing-day mask. Markov paths are advanced for all replications at once by inverse-CDF sampling: take each path's row of today's matrix, form its cumulative sum, and choose the first state whose cumulative probability exceeds a uniform draw. Each model is replayed **2,000 times**.
+Rudraksh Kapil combined both models in one Python simulation engine (`StochasticAirQualitySimulator`, notebook 04). It simulates the HPP, monthly and compound NHPPs, and all-year, seasonal and monthly Markov chains on the real 3,653-day calendar with its missing-day mask. Markov paths are advanced for all replications at once by inverse-CDF sampling: take each path's row of today's matrix, form its cumulative sum, and pick the first state whose cumulative probability exceeds a uniform draw.
 
-**Parameter recovery.** Simulating from a known $p_{SS} = 0.625$ and re-estimating it (500 replicates per size): with $N = 200$ the mean estimate is 0.614 (SD 0.079, 93.2% coverage); with $N = 1{,}000$, 0.623 (SD 0.035, 94.4%); with $N = 10{,}000$, 0.625 (SD 0.010, 96.6%). Bias vanishes, the SD falls roughly as $N^{-1/2}$, and interval coverage stays near 95%.
+Monte Carlo parameter recovery (500 replicates per size, true $p_{SS} = 0.625$, $N$ = 200 to 10,000) confirms the estimator behaves as theory predicts: the bias vanishes (mean estimate 0.614 at $N = 200$, 0.625 at $N = 10{,}000$), the standard deviation falls roughly as $N^{-1/2}$ (0.079 → 0.010), and 95% interval coverage stays between 93.2% and 96.6%, within Monte Carlo error of the nominal level.
 
-### 5.2 Monthly Dispersion: No Model Matches
+![Parameter recovery: bias, standard-error decay and interval coverage](../figures/C01_parameter_recovery.png)
+
+### 5.2 Comparative Simulation: Monthly Dispersion
+
+Each model was replayed **2,000 times** on the 2016–2025 calendar. All reproduce the ten-year total of about 300 Severe days, but they differ sharply in month-to-month variation, measured by the dispersion index $D = \frac{1}{M-k}\sum_m (n_m - \mu_m)^2/\mu_m$ (observed $D_{\text{obs}} = 1.77$):
+
+| Model | Simulated total (95% range) | Monthly $D$ (mean, 95% range) | $P(D_{\text{sim}} \ge 1.77)$ | Verdict |
+|---|---|---|---|---|
+| HPP | 300 (267–336) | 10.6 (7.2–15.2) | 1.000 | Ignores seasonality |
+| Monthly NHPP | 301 (269–334) | 1.1 (0.7–1.7) | 0.015 | Too regular: no clustering |
+| Compound NHPP | 300 (231–379) | 8.2 (3.0–18.9) | 1.000 | Far too variable |
+| Seasonal Markov chain | 287 (228–345) | 20.3 (9.9–35.1) | 1.000 | Far too variable |
+| Monthly Markov chain | 299 (245–354) | 6.8 (2.4–15.8) | 0.996 | Too variable |
+
+**No model reproduces the observed dispersion.** The NHPP assumes independent days, so its monthly counts are too steady. A first-order chain has lag-$k$ autocorrelation $\rho^k$ with $\rho = p_{SS} - p_{\bar{S}S} \approx 0.53$ in winter, which inflates monthly variance by roughly $(1+\rho)/(1-\rho) \approx 3.2$: whole spells pile into single months. Real Severe days cluster within spells, but the spells are spread more evenly across a winter than a simple chain expects, which points to winter-to-winter variation in the intensity itself (a Cox process or hidden regimes).
 
 ![Monthly dispersion index of simulated decades against the observed value](../figures/C03_monthly_dispersion_comparison.png)
 
-| Model | Simulated total (95% range) | Monthly $D$ (mean, 95% range) | $P(D_{\text{sim}} \ge 1.77)$ |
-|---|---|---|---|
-| **Real data** | **300** | **1.77** | — |
-| HPP | 300 (267–336) | 10.6 (7.2–15.2) | 1.000 |
-| Monthly NHPP | 301 (269–334) | 1.1 (0.7–1.7) | 0.015 |
-| Compound NHPP | 300 (231–379) | 8.2 (3.0–18.9) | 1.000 |
-| Seasonal Markov chain | 287 (228–345) | 20.3 (9.9–35.1) | 1.000 |
-| Monthly Markov chain | 299 (245–354) | 6.8 (2.4–15.8) | 0.996 |
+### 5.3 Episode Lengths & Extreme Spells
 
-Every model gets the ten-year total right, but **none reproduces the dispersion**. The NHPP has no memory, so it is too steady. A first-order chain has lag-$k$ autocorrelation $\rho^k$ with $\rho = p_{SS} - p_{\bar{S}S} \approx 0.53$ in winter, inflating monthly variance by roughly $(1+\rho)/(1-\rho) \approx 3.2$, so it is too bursty. Real Severe days cluster within spells, but spells are spread more evenly across a winter than a simple chain expects.
+Markov-simulated episode lengths match the 112 real episodes: mean 2.64 days against 2.68, and a two-sample KS test cannot tell them apart ($D = 0.089$, $p = 0.32$). The compound NHPP's episode lengths are not compared, because in the current code all of an episode's days are placed on its onset day.
 
-### 5.3 Episodes and Extreme Spells
+For the longest Severe run of each December–February winter (11 real winters; 20,000 simulated winters per model, the chain started from its winter stationary distribution):
 
-The Markov chain reproduces episode lengths: simulated mean 2.64 days against 2.68, and a two-sample KS test cannot separate them ($D = 0.089$, $p = 0.32$). The real episodes are slightly less geometric than the model ($P(L \ge 3)$ = 0.30 observed vs 0.39 geometric), with 2 episodes of 10 days or more. (The compound NHPP's episode lengths are not compared: in the current code all of an episode's days are placed on its onset day.)
-
-![Longest Severe run per simulated Dec–Feb winter](../figures/C05_extreme_spell_distribution.png)
-
-| Longest Dec–Feb run | Real (11 winters) | Winter Markov chain | Monthly NHPP |
+| Longest Dec–Feb run | Real winters (n = 11) | Winter Markov chain | Monthly NHPP |
 |---|---|---|---|
 | Mean | 6.3 days | 5.9 days | 3.2 days |
 | $P(\ge 7 \text{ days})$ | 36% (4 of 11) | 33% | 1.0% |
 | $P(\ge 10 \text{ days})$ | 9% (1 of 11) | 8.6% | 0.04% |
 
-Simulated with 20,000 winters per model. Without memory a week-long crisis almost never happens; the chain matches the real frequency. Yet the chain makes the 17-day record a roughly 1-in-400-winter event, so the real tail is heavier than either model.
+Without memory, a week-long Severe crisis happens in about 1% of winters; the Markov chain gives 33%, close to the observed 4 of 11. The chain still makes the 17-day record (from 20 December 2018) a roughly 1-in-400-winter event, so the real tail is heavier than either model. With only 11 winters we do not estimate return levels beyond the length of the record.
 
-### 5.4 Multi-Day Forecasts (2023–Sep 2026)
+![Longest Severe run per simulated Dec–Feb winter](../figures/C05_extreme_spell_distribution.png)
+
+### 5.4 Multi-Step Forecast Verification (2023–Sep 2026)
+
+Both models were refitted on 2016–2022 and scored on every day of 2023–September 2026 (about 1,300 forecasts per horizon). The Markov forecast uses Chapman–Kolmogorov, $P(X_{t+h} = \text{Severe} \mid X_t = i) = [P_{\text{season}}^h]_{i,\text{Severe}}$; the NHPP forecast is the target month's rate.
+
+| Horizon $h$ | Brier (Markov) | Brier (NHPP) | Skill vs climatology (Markov / NHPP) | AUC (Markov) | AUC (NHPP) |
+|---|---|---|---|---|---|
+| 1 day | **0.051** | 0.060 | **38%** / 27% | **0.931** | 0.897 |
+| 3 days | 0.062 | **0.060** | 24% / **27%** | **0.900** | 0.895 |
+| 7 days | 0.067 | **0.058** | 16% / **27%** | 0.871 | **0.894** |
+| 14 days | 0.068 | **0.058** | 14% / **27%** | 0.814 | **0.895** |
+
+The Markov chain has the lower Brier score **only one day ahead** (from two days on the NHPP is better) and ranks days better (higher AUC) up to three days ahead. Because $P^h \to \pi$ within about a week, the chain forgets today's state, while the NHPP keeps finer monthly detail. Both beat climatology at every horizon.
 
 ![Brier score and AUC against forecast horizon](../figures/C06_multistep_forecast_skill.png)
 
-The Markov forecast is $[P_{\text{season}}^h]_{i,\text{Severe}}$; the NHPP forecast is the target month's rate.
+### 5.5 GRAP Policy Scenarios (Assumed Effects)
 
-| Horizon | 1 day | 2 days | 3 days | 5 days | 7 days | 14 days |
-|---|---|---|---|---|---|---|
-| Brier, Markov | **0.0508** | 0.0608 | 0.0623 | 0.0657 | 0.0666 | 0.0679 |
-| Brier, NHPP | 0.0598 | **0.0597** | **0.0596** | **0.0592** | **0.0584** | **0.0577** |
-| AUC, Markov | **0.931** | **0.904** | **0.900** | 0.888 | 0.871 | 0.814 |
-| AUC, NHPP | 0.897 | 0.896 | 0.895 | **0.895** | **0.894** | **0.895** |
+3,000 independent 90-day winters were simulated with the winter matrix under modified transition probabilities. **The effect sizes are assumptions chosen to show the mechanism, not estimates of what GRAP achieves.**
 
-The chain has the lower Brier score **only one day ahead**, and the better ranking (AUC) up to three days. Because $P^h \to \pi$ within about a week, the chain forgets today; the monthly NHPP keeps finer seasonal detail. Both beat climatology at every horizon.
+| Scenario | Severe days (mean) | Change | 5-day crises per winter | $P(\ge 1 \text{ crisis})$ |
+|---|---|---|---|---|
+| Baseline | 18.4 | — | 1.02 | 66.3% |
+| Entry curb (−20% Very Poor → Severe) | 15.5 | −16% | 0.85 (−17%) | 58.8% |
+| Persistence curb (−15% Severe → Severe) | 15.4 | −16% | 0.56 (−45%) | 44.3% |
+| Combined | 12.9 | −30% | 0.46 (−55%) | 37.7% |
 
-### 5.5 Policy Scenarios (Assumed Effects)
+![Policy scenarios: Severe days and multi-day crises per simulated winter](../figures/C08_policy_intervention_simulation.png)
 
-3,000 simulated 90-day winters per scenario using the winter matrix. **The effect sizes are assumptions chosen to show the mechanism, not estimates of what GRAP achieves.**
-
-| Scenario | Severe days per winter | 5-day crises per winter | Winters with a 5-day crisis |
-|---|---|---|---|
-| Baseline | 18.4 ± 7.2 | 1.02 | 66.3% |
-| Entry curb (−20% Very Poor → Severe) | 15.5 (−16%) | 0.85 (−17%) | 58.8% |
-| Persistence curb (−15% Severe → Severe) | 15.4 (−16%) | 0.56 (−45%) | 44.3% |
-| Both | 12.9 (−30%) | 0.46 (−55%) | 37.7% |
-
-For a similar cut in total Severe days, reducing persistence removes far more multi-day crises than reducing entry, because persistence multiplies into every extra day of a spell.
+> [!IMPORTANT]
+> **Mechanism, not forecast:** for a similar cut in total Severe days, reducing persistence removes about 45% of 5-day crises, about 2.6 times the effect of the entry curb, because persistence multiplies into every extra day of a spell. Combined, the assumed measures cut Severe days by 30% and the chance of a 5-day crisis from 66% to 38%. Real effect sizes would have to be estimated, for example from GRAP activation dates.
 
 ---
 
 ## 6. Comparison of Theoretical and Empirical Results
 
-| Theoretical result | Empirical check | Agreement |
+### 6.1 Cross-Model Consistency
+
+| Quantity | Poisson (Harsh Raj) | Markov (Vivian) | Simulation (Rudraksh Kapil) |
+|---|---|---|---|
+| $P(\text{Severe} \mid \text{Severe})$ | $\hat{q} = 188/300 = 0.627$ | $\hat{p}_{SS} = 188/298 = 0.631$ | Recovered without bias (5.1) |
+| Mean Severe spell | 2.68 days | 2.71 days | 2.64 days (simulated) |
+| Mean recurrence time | $1/\hat{\lambda} = 11.4$ days | $1/\pi_5 = 11.5$ days | — |
+| Annual Severe days | 31.9 per year | $365\,\pi_5 = 31.7$ | 300.7 per 10 years (NHPP) |
+
+The Poisson and Markov columns agree because they are computed from the same 300 Severe days, so they confirm the analyses are consistent rather than giving independent evidence. The genuinely independent checks are the theoretical predictions tested against data below.
+
+### 6.2 Where Theory Matches and Where It Diverges
+
+| Theoretical prediction | Empirical result | Status |
 |---|---|---|
 | Geometric spells, $E[D] = 1/(1-p_{ii})$ | Matches observed means for all 5 states | ✓ |
-| Stationary distribution $\pi = \pi P$ | Within 1% of observed frequencies (winter Severe 0.206 vs 0.214) | ✓ |
-| $P^n \to \pi$ (eigenvalue 0.70 in winter) | Memory gone within about a week; explains the forecast crossover | ✓ |
+| Stationary distribution $\pi = \pi P$ | Within 1% of observed frequencies | ✓ |
+| $P^n \to \pi$ (winter eigenvalue 0.70) | Memory gone within a week; explains the forecast crossover | ✓ |
 | NHPP 95% monthly intervals | 95.6% coverage on 45 unseen months | ✓ |
 | First-order chain within seasons | Anderson–Goodman $p = 0.69$ (winter) | ✓ |
-| First-passage time from 1 October | 29 days predicted vs 29.6 observed | ✓ |
+| First Severe day about 29 days after 1 October | Observed mean 29.6 days | ✓ |
 | MLE standard error $\propto N^{-1/2}$ | Confirmed by parameter recovery | ✓ |
 | Markov episode lengths | KS $p = 0.32$ against real episodes | ✓ |
+| Monthly dispersion (NHPP 1.1, Markov 6.8) | $D_{\text{obs}} = 1.77$ | ✗ neither model |
+| Geometric spell shape, $P(L \ge 3) = 0.39$ | Observed 0.30 (chi-square $p = 0.018$); record 17 days | ✗ shape and extreme tail |
+| NHPP 2023 interval 19–40 | Observed 44 (and 16 in 2022) | ✗ year-to-year variation |
 
-**Where theory and data diverge.** (i) No model matches the monthly dispersion of 1.77 (NHPP 1.1, Markov 6.8). (ii) 2022 (16 Severe days) and 2023 (44) fall outside the Poisson range; the Markov chain covers them only by being too bursty month to month. (iii) The 17-day record is far in the tail of the chain. (iv) The compound Poisson model is far too variable ($D = 8.2$).
+The remaining dispersion, the extreme tail and the year-to-year swings all point to winter-to-winter meteorological variation and latent regimes that stationary models do not capture.
 
-The two models are complementary:
+### 6.3 Model Selection Guide
 
-| Question | Best model | Evidence |
+| Decision question | Best model | Rationale |
 |---|---|---|
-| How many Severe days this month or winter? | Monthly NHPP | 95.6% coverage, best log score, MAE 1.09 |
+| Severe days per month or winter | Monthly NHPP | 95.6% coverage, best log score, MAE 1.09 |
 | Will tomorrow be Severe? | Seasonal Markov chain | Brier 0.051 vs 0.060 |
 | Severe in 2 or more days? | Monthly NHPP | Lower Brier score from $h = 2$ |
-| How long will a spell last? Chance of a week-long crisis? | Markov chain | Episode KS $p = 0.32$; 33% vs 36% observed |
-| Which policy lever matters most? | Markov simulation | Direct control of entry and persistence (assumed effects) |
+| Spell length, chance of a week-long crisis | Markov chain | Episode KS $p = 0.32$; 33% vs 36% observed |
+| Which policy lever matters most | Markov simulation | Direct control of entry and persistence (assumed effects) |
 
 ---
 
