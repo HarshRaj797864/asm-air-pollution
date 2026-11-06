@@ -2,7 +2,7 @@
 
 ## ASM Project Report — 2026M
 
-**Team:** Harsh Raj (data and Poisson process) · Vivian (Markov chain) · Rudraksh Kapil (simulation and validation)
+**Team:** Harsh Raj (data and Poisson process) · Vivian Mathew (Markov chain) · Rudraksh Kapil (simulation and validation)
 **Application Domain:** Environmental Science / Urban Air Quality Management
 **Data Source:** Central Pollution Control Board (CPCB), CAAQMS Data Repository — R K Puram, Delhi (DPCC, Site 124)
 **Study Period:** 2016–2025 (with 2026 hold-out)
@@ -14,7 +14,7 @@
 1. [Problem Statement](#1-problem-statement)
 2. [Data Description & Exploratory Analysis](#2-data-description--exploratory-analysis)
 3. [Model I — Poisson Process (Harsh Raj)](#3-model-i--poisson-process-harsh-raj)
-4. [Model II — Markov Chain (Vivian)](#4-model-ii--markov-chain-vivian)
+4. [Model II — Markov Chain (Vivian Mathew)](#4-model-ii--markov-chain-vivian)
 5. [Model III — Simulation Engine & Validation (Rudraksh Kapil)](#5-model-iii--simulation-engine--validation-rudraksh-kapil)
 6. [Comparison of Theoretical and Empirical Results](#6-comparison-of-theoretical-and-empirical-results)
 7. [Interpretation in the Context of Application](#7-interpretation-in-the-context-of-application)
@@ -238,7 +238,7 @@ The NHPP is slightly too regular; the compound model is far too variable. (Secti
 
 ---
 
-## 4. Model II — Markov Chain (Vivian)
+## 4. Model II — Markov Chain (Vivian Mathew)
 
 ### 4.1 Motivation
 
@@ -274,7 +274,7 @@ The MLE of each transition probability is $\hat{p}_{ij} = n_{ij}/n_i$ (maximise 
 Only 3.5% of days move two or more categories in one step.
 
 > [!NOTE]
-> **Consistency check with the Poisson model:** $\hat{p}_{SS} = 188/298 = 0.631$ (95% Wilson CI: 0.575–0.684). Harsh's episode analysis gave $\hat{q} = 0.627$. The two estimates agree because they count the same thing: of the 300 Severe days, $300 - 112 = 188$ were followed by another Severe day; the Markov estimate divides by the 298 Severe days with an observed next day, the episode estimate by all 300. This confirms that the two analyses are consistent; it is not independent evidence. The implied mean Severe spell $1/(1-0.631) = 2.71$ days matches the mean episode length of 2.68 days.
+> **Consistency check with the Poisson model:** $\hat{p}_{SS} = 188/298 = 0.631$ (95% Wilson CI: 0.575–0.684). Harsh Raj's episode analysis gave $\hat{q} = 0.627$. The two estimates agree because they count the same thing: of the 300 Severe days, $300 - 112 = 188$ were followed by another Severe day; the Markov estimate divides by the 298 Severe days with an observed next day, the episode estimate by all 300. This confirms that the two analyses are consistent; it is not independent evidence. The implied mean Severe spell $1/(1-0.631) = 2.71$ days matches the mean episode length of 2.68 days.
 
 ### 4.4 Seasonal Transition Matrices
 
@@ -513,7 +513,7 @@ The Markov chain has the lower Brier score **only one day ahead**; from two days
 
 ### 6.1 Cross-Model Consistency
 
-| Quantity | Poisson (Harsh Raj) | Markov (Vivian) | Simulation (Rudraksh Kapil) |
+| Quantity | Poisson (Harsh Raj) | Markov (Vivian Mathew) | Simulation (Rudraksh Kapil) |
 |---|---|---|---|
 | $P(\text{Severe} \mid \text{Severe})$ | $\hat{q} = 188/300 = 0.627$ | $\hat{p}_{SS} = 188/298 = 0.631$ | Recovered without bias (Section 5.2) |
 | Mean Severe spell | 2.68 days | 2.71 days | 2.64 days (simulated) |
@@ -678,5 +678,5 @@ flowchart TD
 | Member | Contribution |
 |---|---|
 | **Harsh Raj** | Downloaded and cleaned the CPCB data and produced the shared daily dataset; exploratory analysis and threshold selection; built the homogeneous, monthly and compound Poisson models (estimation, likelihood-ratio tests, time-rescaling, simulation, out-of-sample validation) — notebooks 01–02 |
-| **Vivian** | Formulated and estimated the Markov chain on AQI categories (all-year, seasonal and monthly matrices); derived $n$-step probabilities, the stationary distribution, spell lengths and first-passage times, including the season-start model; tested time-homogeneity and chain order; next-day out-of-sample validation against the Poisson model — notebook 03 |
+| **Vivian Mathew** | Formulated and estimated the Markov chain on AQI categories (all-year, seasonal and monthly matrices); derived $n$-step probabilities, the stationary distribution, spell lengths and first-passage times, including the season-start model; tested time-homogeneity and chain order; next-day out-of-sample validation against the Poisson model — notebook 03 |
 | **Rudraksh Kapil** | Designed the shared `StochasticAirQualitySimulator`; Monte Carlo parameter recovery; dispersion and episode-length comparisons; extreme-spell analysis; multi-step forecast verification; GRAP policy scenarios — notebook 04 |
