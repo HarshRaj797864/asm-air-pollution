@@ -5,162 +5,60 @@
 **Team:** Harsh Raj (data and Poisson process) · Vivian (Markov chain) · Rudraksh Kapil (simulation and validation)
 **Application Domain:** Environmental Science / Urban Air Quality Management
 **Data Source:** Central Pollution Control Board (CPCB), CAAQMS Data Repository — R K Puram, Delhi (DPCC, Site 124)
-**Study Period:** 2016–2025 (with 2026 hold-out)
-
----
-
-## Table of Contents
-
-1. [Problem Statement](#1-problem-statement)
-2. [Data Description & Exploratory Analysis](#2-data-description--exploratory-analysis)
-3. [Model I — Poisson Process (Harsh Raj)](#3-model-i--poisson-process-harsh-raj)
-4. [Model II — Markov Chain (Vivian)](#4-model-ii--markov-chain-vivian)
-5. [Model III — Simulation Engine & Validation (Rudraksh Kapil)](#5-model-iii--simulation-engine--validation-rudraksh-kapil)
-6. [Comparison of Theoretical and Empirical Results](#6-comparison-of-theoretical-and-empirical-results)
-7. [Interpretation in the Context of Application](#7-interpretation-in-the-context-of-application)
-8. [Limitations](#8-limitations)
-9. [Possible Extensions](#9-possible-extensions)
-10. [References](#10-references)
+**Study Period:** 2016–2025 (with 2026 hold-out) · **Code:** github.com/HarshRaj797864/asm-air-pollution (notebooks 01–04)
 
 ---
 
 ## 1. Problem Statement
 
-Delhi has some of the worst urban air quality in the world. On a **Severe** air-quality day (24-hour mean PM2.5 above 250 µg/m³ — the top category of India's National AQI), the air is harmful even to healthy people, schools are often closed, and emergency measures under the **Graded Response Action Plan (GRAP)** are triggered.
-
-Whether a given day becomes Severe depends on many factors that cannot be predicted exactly: wind speed, temperature inversions, crop-residue burning in neighbouring states, festival fireworks, traffic, and dust. The number and timing of Severe days is therefore naturally modelled as a **random (stochastic) process**.
+On a **Severe** air-quality day in Delhi, the 24-hour mean PM2.5 is above 250 µg/m³: the top category of India's National AQI, more than four times the national 24-hour limit of 60 µg/m³, and the level at which emergency measures under the **Graded Response Action Plan (GRAP)** are triggered. Whether a day turns Severe depends on wind, temperature inversions, crop-residue burning, festival fireworks and traffic, none of which can be predicted exactly, so we model Severe days as a **stochastic process**.
 
 > [!IMPORTANT]
-> **Central Research Questions:**
-> 1. At what rate do Severe days occur, and how uncertain is that rate?
-> 2. Does the rate depend on the season, and has it changed between 2016 and 2025?
-> 3. Are Severe days independent random events (a Poisson process), or do they come in clusters?
-> 4. How does air quality move between categories from one day to the next?
-> 5. How well do models fitted on past years predict Severe days in later years?
-> 6. What could GRAP-style interventions change, under assumed effect sizes?
+> **Research questions:** (1) At what rate do Severe days occur, does the rate depend on the season, and has it changed over 2016–2025? (2) Are Severe days independent events (a Poisson process) or do they cluster? (3) How does air quality move between categories from day to day, and how long do Severe spells last? (4) How well do models fitted on past years predict later years? (5) What could GRAP-style measures change, under assumed effect sizes?
 
 ---
 
-## 2. Data Description & Exploratory Analysis
+## 2. Data and Exploratory Analysis
 
-### 2.1 Data Source and Cleaning
+**Source and cleaning.** Hourly PM2.5 from the CPCB CAAQMS repository ([airquality.cpcb.gov.in/ccr](https://airquality.cpcb.gov.in/ccr/)), R K Puram (site 124), one file per year for 2009–2026. Readings at the analyser cap (1000 µg/m³, 17 hours) were set to missing. A day is *observed* if at least 18 of its 24 hours are valid; gaps of up to 3 days are interpolated (194 days, 5.3%) and longer gaps are left out of the exposure time (223 days, 6.1%). Earlier years are sparse (2014 has no data), so models are fitted on **2016–2025: 3,653 days, 3,430 valid**, every year at least 72% observed. January–September 2026 is kept as an extra hold-out.
 
-**Source:** CPCB Central Control Room for Air Quality Management, CAAQMS Data Repository ([airquality.cpcb.gov.in/ccr](https://airquality.cpcb.gov.in/ccr/)). Station: **R K Puram, Delhi – DPCC** (site 124), a residential area in south Delhi. Hourly concentrations of pollutants and weather variables, one file per year, 2009–2026 (downloaded October 2026). We use **PM2.5 (µg/m³)**.
+![Daily PM2.5 at R K Puram, 2016 to September 2026](../figures/A02_timeseries.png)
 
-| Step | Rule | Effect |
-|---|---|---|
-| Implausible values | Readings at the analyser cap (1000 µg/m³) set to missing | 17 hours, all in 2011 |
-| Daily mean | Day is *observed* if ≥ 18 of 24 hours are valid (75% rule) | — |
-| Short gaps | Gaps of ≤ 3 consecutive days linearly interpolated | 194 days (5.3%) |
-| Long gaps | Left missing, excluded from exposure time | 223 days (6.1%) |
+PM2.5 has a strong annual cycle: lowest in July–August (monsoon washout), highest in November–January (inversions, crop burning, fireworks). The valid-day mean is 111.9 µg/m³, the median 83.9 and the maximum 729.3 (6 November 2016).
 
-### 2.2 Data Coverage
+**Event definition.** An *event* is a Severe day (PM2.5 > 250 µg/m³). Lower thresholds are not rare events, so they do not suit a counting process:
 
-![Data coverage by year](../figures/A01_coverage_by_year.png)
-
-**Study window:** 2009–2010 have no data, 2014 has none, 2013 has only 17%. From **2016 to 2025** every year has at least 72% observed days (2018 and 2020–2025 ≥ 90%), so the models are estimated on these **10 years (3,653 days, 3,430 valid)**. January–September 2026 is kept as an additional hold-out period.
-
-### 2.3 Summary Statistics (2016–2025, Valid Days)
-
-| Statistic | Value |
-|---|---|
-| Mean PM2.5 | 111.9 µg/m³ |
-| Median PM2.5 | 83.9 µg/m³ |
-| Maximum PM2.5 | 729.3 µg/m³ (6 November 2016) |
-| Total valid days | 3,430 |
-
-### 2.4 AQI Category Distribution
-
-| AQI Category | Days | % of Days |
-|---|---|---|
-| Good (≤ 30) | 397 | 11.6% |
-| Satisfactory (30–60) | 802 | 23.4% |
-| Moderate (60–90) | 620 | 18.1% |
-| Poor (90–120) | 425 | 12.4% |
-| Very Poor (120–250) | 886 | 25.8% |
-| **Severe (> 250)** | **300** | **8.7%** |
-
-### 2.5 Temporal Patterns
-
-![PM2.5 time series 2016–2026](../figures/A02_timeseries.png)
-
-![Monthly boxplot of PM2.5](../figures/A03_monthly_boxplot.png)
-
-![AQI category distribution by month](../figures/A04_category_by_month.png)
-
-Pollution has a very strong annual cycle: monthly medians are lowest in July–August (monsoon washout) and highest in November–January (winter inversions, crop burning and festival fireworks).
-
-### 2.6 Event Definition
-
-We define an *event* as a day with PM2.5 > 250 µg/m³ ("Severe"). In 10 years: **300 Severe days** forming **112 episodes** (runs of consecutive Severe days) with a mean length of **2.7 days** and a maximum of **17 days** (from 20 December 2018).
-
-| Threshold (µg/m³) | Event Days | % of Valid Days | Episodes | Mean Episode Length |
+| Threshold (µg/m³) | Event days | % of valid days | Episodes | Mean episode length |
 |---|---|---|---|---|
 | 60 | 2,231 | 65.0% | 185 | 12.1 days |
-| 90 | 1,611 | 47.0% | 186 | 8.7 days |
 | 120 | 1,186 | 34.6% | 160 | 7.4 days |
-| **250** | **300** | **8.7%** | **112** | **2.7 days** |
+| **250 (Severe)** | **300** | **8.7%** | **112** | **2.7 days** |
 
-![Exceedances per year](../figures/A05_exceedances_per_year.png)
+The 300 Severe days form 112 episodes (runs of consecutive Severe days); the longest lasted **17 days** from 20 December 2018. For the Markov chain each day is also given its AQI band: Good/Satisfactory 35.0%, Moderate 18.1%, Poor 12.4%, Very Poor 25.8%, Severe 8.7%.
 
 ---
 
 ## 3. Model I — Poisson Process (Harsh Raj)
 
-### 3.1 Theoretical Formulation
+### 3.1 Formulation and Estimation
 
-Let time $t$ be measured in days. The counting process $N(t)$ is the number of Severe days in $(0, t]$, with state space $\{0, 1, 2, \ldots\}$.
+$N(t)$ counts Severe days in $(0, t]$, with $t$ in days. A **homogeneous Poisson process (HPP)** with rate $\lambda$ has independent stationary increments, $N(t) \sim \text{Poisson}(\lambda t)$, $E[N(t)] = \text{Var}[N(t)] = \lambda t$, and i.i.d. $\text{Exp}(\lambda)$ gaps. A **non-homogeneous** process (NHPP) has monthly rates $\lambda(t) = \lambda_{m(t)}$, so $N(t) \sim \text{Poisson}(\Lambda(t))$ with $\Lambda(t) = \int_0^t \lambda(s)\,ds$. A **compound NHPP** lets episodes start at rate $\mu_{m(t)}$ and last $L \sim \text{Geometric}(1-q)$ days. With daily data at most one event is seen per day; for small rates a Bernoulli day process is close to Poisson (law of rare events), less so in winter.
 
-**Homogeneous Poisson Process (HPP)** with rate $\lambda$:
-- $N(0) = 0$, independent and stationary increments
-- $N(t) \sim \text{Poisson}(\lambda t)$
-- $E[N(t)] = \text{Var}[N(t)] = \lambda t$
-- Inter-arrival times: $X_k \sim \text{Exp}(\lambda)$ i.i.d.
+The MLE is $\hat{\lambda} = n/T$ with the exact (Garwood) interval $\left[\chi^2_{0.025,2n}/2T,\; \chi^2_{0.975,2n+2}/2T\right]$. With $n = 300$ and $T = 3{,}430$:
 
-**Non-Homogeneous Poisson Process (NHPP)** with piecewise-constant monthly rate $\lambda(t) = \lambda_{m(t)}$:
-$$N(t) \sim \text{Poisson}(\Lambda(t)), \quad \Lambda(t) = \int_0^t \lambda(s)\,ds$$
+$$\hat{\lambda} = 0.0875 \text{ per day} \;(0.078\text{–}0.098) \;\approx\; 31.9 \text{ Severe days per year} \;(28.4\text{–}35.8)$$
 
-**Compound (Clustered) NHPP**: Episode onsets arrive as an NHPP with rate $\mu_{m(t)}$; each episode lasts $L_i \sim \text{Geometric}(1-q)$ days:
-$$N(t) = \sum_{i=1}^{K(t)} L_i, \quad E[N] = \Lambda_\mu E[L], \quad \text{Var}[N] = \Lambda_\mu E[L^2]$$
+### 3.2 The HPP is Rejected
 
-Because data are daily, at most one event is observed per day; with small daily rates a Bernoulli day process is well approximated by a Poisson process (law of rare events). This approximation is weaker in winter, where the rate is about 0.3 per day.
+Monthly counts have mean 2.5 and variance 21.4: a Pearson dispersion index of **8.1** where a Poisson process needs about 1 ($\chi^2 = 965$, df = 119). **66% of gaps between Severe days are a single day**, against 9% expected under the HPP (KS $D = 0.58$, $p \approx 10^{-93}$).
 
-### 3.2 Parameter Estimation
+![Gaps between Severe days and exponential Q–Q plot](../figures/A07_interarrival.png)
 
-The MLE is $\hat{\lambda} = n/T$, with an exact 95% CI from the Garwood chi-square relation:
+### 3.3 Seasonality is the Main Effect
 
-$$\left[\frac{\chi^2_{0.025, 2n}}{2T},\; \frac{\chi^2_{0.975, 2n+2}}{2T}\right]$$
+![Monthly Severe-day rates with exact 95% intervals](../figures/A08_monthly_rates.png)
 
-**HPP Results:** $n = 300$, $T = 3{,}430$ days →
-
-$$\hat{\lambda} = 0.0875 \text{ per day} \;\; (95\% \text{ CI: } 0.078\text{–}0.098) \;\approx\; 31.9 \text{ Severe days/year} \;\; (28.4\text{–}35.8)$$
-
-### 3.3 Monthly NHPP Rates
-
-![Monthly Severe-day rates](../figures/A08_monthly_rates.png)
-
-| Month | Severe Days | $\hat{\lambda}_m$ per day | 95% CI |
-|---|---|---|---|
-| **November** | 102 | **0.345** | 0.281–0.418 |
-| **December** | 94 | **0.312** | 0.252–0.382 |
-| **January** | 85 | **0.296** | 0.237–0.366 |
-| October | 11 | 0.038 | 0.019–0.069 |
-| February | 5 | 0.018 | 0.006–0.043 |
-| May | 3 | 0.010 | 0.002–0.030 |
-| Mar, Apr, Jun–Sep | 0 | 0.000 | — |
-
-**94% of Severe days (281 of 300) fall in November–January**, where approximately one day in three is Severe.
-
-### 3.4 Model Checking — HPP is Rejected
-
-![Monthly counts vs HPP](../figures/A06_monthly_counts_vs_hpp.png)
-
-- **Dispersion:** Monthly counts have mean 2.5 and variance 21.4; Pearson dispersion index = **8.1** (should be ≈ 1 under the HPP; $\chi^2 = 965$, df = 119, $p < 10^{-100}$)
-- **Inter-arrival times:** 66% of gaps are exactly 1 day (vs 9% expected under the HPP); KS test vs $\text{Exp}(\hat{\lambda})$: $D = 0.58$, $p \approx 10^{-93}$
-
-![Inter-arrival time distribution](../figures/A07_interarrival.png)
-
-### 3.5 Seasonality is the Main Effect
+November (0.345 per day), December (0.312) and January (0.296) hold **94% of Severe days (281 of 300)**, about one day in three; March–September had three Severe days in ten years.
 
 | Model | Parameters | Log-likelihood | AIC | Dispersion |
 |---|---|---|---|---|
@@ -168,55 +66,13 @@ $$\hat{\lambda} = 0.0875 \text{ per day} \;\; (95\% \text{ CI: } 0.078\text{–}
 | Seasonal NHPP | 4 | −217.7 | 443.3 | 3.45 |
 | **Monthly NHPP** | **12** | **−122.9** | **269.8** | **1.77** |
 
-Likelihood-ratio test of the HPP against the monthly NHPP: LR = 680 (df 11, $p < 10^{-30}$). The monthly NHPP follows the observed staircase of cumulative counts:
+The likelihood-ratio test of the HPP against the monthly NHPP gives LR = 680 (df 11, $p < 10^{-30}$). A Poisson regression with month and year effects finds **no trend**: −0.4% per year (95% CI −5.6% to +5.0%; quasi-Poisson $\hat{\phi} = 1.54$, year effect $p = 0.10$).
 
-![Cumulative severe-day counts](../figures/A09_cumulative_counts.png)
+### 3.4 Clustering Remains
 
-### 3.6 Trend Analysis — No Trend Detected
+**63% of Severe days (188 of 300) follow another Severe day.** Episode *onsets* behave like a Poisson process (dispersion 0.89, $p = 0.71$), and episode lengths are roughly geometric with $\hat{q} = 0.627$ (chi-square $p = 0.018$). The time-rescaling theorem confirms this: rescaled gaps should be i.i.d. Exp(1), and the KS distance falls from 0.51 (HPP) to 0.23 (NHPP, $p \approx 10^{-14}$) for Severe days, and to 0.17 ($p = 0.004$) for episode onsets. Seasonality is fixed by the NHPP; clustering is not, which motivates the Markov chain.
 
-A Poisson regression with month and year effects: after allowing for overdispersion (quasi-Poisson, $\hat{\phi} = 1.54$), the year effect is not significant ($p = 0.10$). The linear trend is **−0.4% per year (95% CI: −5.6% to +5.0%)**.
-
-![Observed/Expected ratio by year](../figures/A10_yearly_ratio.png)
-
-### 3.7 Clustering and Episode Analysis
-
-**63% of Severe days (188 of 300) immediately follow another Severe day.**
-
-- Episode onsets behave like a Poisson process: dispersion index = 0.89 ($p = 0.71$)
-- Episode lengths are roughly geometric with $\hat{q} = 0.627$ (= $P(\text{Severe tomorrow} \mid \text{Severe today})$), although a chi-square test against the geometric shape gives $p = 0.018$ and the longest episode is 17 days
-- This motivates the Markov chain model
-
-![Episode length distribution](../figures/A11_episode_lengths.png)
-
-**Time-Rescaling Theorem Verification:**
-
-![Time rescaling residuals](../figures/A12_time_rescaling.png)
-
-| Model | KS Distance | $p$-value |
-|---|---|---|
-| HPP – Severe days | 0.51 | $\approx 0$ |
-| NHPP – Severe days | 0.23 | $\approx 10^{-14}$ |
-| **NHPP – Episode onsets** | **0.17** | **0.004** |
-
-Seasonality is fixed by the NHPP, but clustering of individual Severe days is not.
-
-### 3.8 Simulation (2,000 Replications)
-
-![Simulated sample paths](../figures/A13_simulated_paths.png)
-
-![Simulated dispersion comparison](../figures/A14_simulated_dispersion.png)
-
-| Model | Simulated Total (Mean, 95% Range) | Monthly Dispersion $D$ (Mean, 95% Range) | $P(D_{\text{sim}} \geq D_{\text{obs}})$ |
-|---|---|---|---|
-| HPP | 299.6 (266–334) | 10.7 (7.0–15.8) | 1.00 |
-| Monthly NHPP | 300.7 (267–335) | 1.1 (0.7–1.7) | 0.02 |
-| Compound NHPP | 299.2 (230–377) | 8.1 (3.0–18.2) | 1.00 |
-
-The NHPP is slightly too regular; the compound model is far too variable. (Section 5.4 repeats this with the shared simulation engine and a different random seed; the numbers agree to within simulation error.)
-
-### 3.9 Out-of-Sample Validation (Trained on 2016–2022)
-
-![Out-of-sample predictions](../figures/A15_out_of_sample.png)
+### 3.5 Out-of-Sample Test (Fitted on 2016–2022)
 
 | Year | Observed | HPP 95% PI | Monthly NHPP 95% PI | Compound 95% PI |
 |---|---|---|---|---|
@@ -225,145 +81,44 @@ The NHPP is slightly too regular; the compound model is far too variable. (Secti
 | 2025 | 35 | 19–39 ✓ | 18–39 ✓ | 9–54 ✓ |
 | 2026 (Jan–Sep) | 7 | 13–31 ✗ | 5–17 ✓ | 0–25 ✓ |
 
-**Monthly prediction accuracy (45 test months):**
-
-| Metric | HPP | **Monthly NHPP** | Compound |
-|---|---|---|---|
-| 95% PI Coverage | 0.80 | **0.956** | 0.978 |
-| Mean Log Score | −3.36 | **−0.99** | −1.05 |
-| Mean Absolute Error | 3.76 | **1.09** | 1.32 |
-
-> [!TIP]
-> The monthly NHPP achieves near-nominal 95.6% coverage, the best log score and the lowest error. Its only miss is the unusually bad winter of 2023 (44 observed vs an upper bound of 40).
+Over 45 test months the monthly NHPP has the best log score (−0.99; HPP −3.36, compound −1.05), the lowest mean absolute error (1.09) and 95.6% interval coverage. Its only miss is the bad winter of 2023.
 
 ---
 
 ## 4. Model II — Markov Chain (Vivian)
 
-### 4.1 Motivation
+### 4.1 Formulation and Estimation
 
-The Poisson analysis shows that Severe days are not independent: 63% of them follow another Severe day. A Poisson process can say *how many* Severe days a month will have, but not *which* days. A Markov chain models exactly this day-to-day persistence and uses the full range of air-quality categories.
+$\{X_n\}$ is today's AQI band on 5 states (Good and Satisfactory merged), a first-order chain with $P(X_{n+1} = j \mid X_n = i, \ldots) = p_{ij}$. The MLE is $\hat{p}_{ij} = n_{ij}/n_i$. Standard results used: $P^{(n)} = P^n$ (Chapman–Kolmogorov); the stationary distribution solves $\pi = \pi P$; spells in state $i$ are $\text{Geometric}(1 - p_{ii})$ with mean $1/(1-p_{ii})$; mean first-passage times to Severe are $m = (I - Q)^{-1}\mathbf{1}$.
 
-### 4.2 Formulation
+![Transition counts and estimated probabilities, 2016–2025](../figures/B01_transition_matrix.png)
 
-The process $\{X_n\}$ is a time-homogeneous first-order Markov chain on 5 states (Good and Satisfactory merged):
-
-$$P(X_{n+1} = j \mid X_n = i, X_{n-1}, \ldots) = p_{ij}$$
-
-| Property | Formula |
-|---|---|
-| $n$-step transitions | $P^{(n)} = P^n$ (Chapman–Kolmogorov) |
-| Stationary distribution | $\pi = \pi P$; $p^{(n)}_{ij} \to \pi_j$ as $n \to \infty$ |
-| Spell length in state $i$ | $D_i \sim \text{Geometric}(1 - p_{ii})$; $E[D_i] = 1/(1 - p_{ii})$ |
-| Mean first-passage time | $m = (I - Q)^{-1}\mathbf{1}$, $Q$ = $P$ without Severe row/column |
-
-The MLE of each transition probability is $\hat{p}_{ij} = n_{ij}/n_i$ (maximise $\prod p_{ij}^{n_{ij}}$ subject to $\sum_j p_{ij} = 1$).
-
-### 4.3 Estimated Transition Matrix (2016–2025, 3,394 transitions)
-
-![Transition matrix heatmap](../figures/B01_transition_matrix.png)
-
-| From \ To | G/S | Moderate | Poor | Very Poor | Severe | $n_i$ |
-|---|---|---|---|---|---|---|
-| **G/S** | **0.863** | 0.126 | 0.009 | 0.001 | 0.001 | 1,186 |
-| **Moderate** | 0.228 | **0.517** | 0.199 | 0.054 | 0.002 | 613 |
-| **Poor** | 0.038 | 0.254 | **0.445** | 0.261 | 0.002 | 422 |
-| **Very Poor** | 0.007 | 0.046 | 0.106 | **0.720** | 0.121 | 875 |
-| **Severe** | 0.000 | 0.003 | 0.023 | 0.342 | **0.631** | 298 |
-
-Only 3.5% of days move two or more categories in one step.
+From 3,394 transitions the diagonal dominates (Good/Satisfactory 0.86, Moderate 0.52, Poor 0.45, Very Poor 0.72, Severe 0.63), and only 3.5% of days move two or more bands. Severe is entered almost only from Very Poor (0.12) and left almost only to Very Poor (0.34).
 
 > [!NOTE]
-> **Consistency check with the Poisson model:** $\hat{p}_{SS} = 188/298 = 0.631$ (95% Wilson CI: 0.575–0.684). Harsh's episode analysis gave $\hat{q} = 0.627$. The two estimates agree because they count the same thing: of the 300 Severe days, $300 - 112 = 188$ were followed by another Severe day; the Markov estimate divides by the 298 Severe days with an observed next day, the episode estimate by all 300. This confirms that the two analyses are consistent; it is not independent evidence. The implied mean Severe spell $1/(1-0.631) = 2.71$ days matches the mean episode length of 2.68 days.
+> **Consistency check:** $\hat{p}_{SS} = 188/298 = 0.631$ (95% CI 0.575–0.684), close to the Poisson episode estimate $\hat{q} = 188/300 = 0.627$. They agree because both count the same 188 Severe-to-Severe days, so this confirms the two analyses are consistent; it is not independent evidence. The implied mean spell $1/(1-0.631) = 2.71$ days matches the observed 2.68.
 
-### 4.4 Seasonal Transition Matrices
+### 4.2 Seasons and Memory
 
-![Winter vs Summer transition matrices](../figures/B02_winter_vs_summer.png)
+Transition matrices differ between seasons ($G^2 = 347$, df = 54, $p \approx 10^{-44}$; winter vs summer $p \approx 10^{-20}$), so a matrix is fitted per season. In winter, Very Poor → Severe is 0.14 against 0.01 in summer: seasons change how easily the chain **enters** Severe, not how long it **stays**. Starting from a Severe winter day, $P^n$ gives:
 
-Likelihood-ratio test of equal matrices across seasons: $G^2 = 347$, df = 54, $p \approx 10^{-44}$. Winter vs summer alone: $G^2 = 136$, df = 18, $p \approx 10^{-20}$.
-
-| Transition | Winter (Dec–Feb) | Summer (Mar–May) |
-|---|---|---|
-| Very Poor → Very Poor | 0.74 | 0.55 |
-| Very Poor → Severe | 0.14 | 0.01 |
-| Severe → Severe | 0.63 | — (only 3 Severe days) |
-
-In winter the chain drifts towards Very Poor and Severe; in summer it drifts down. Seasons change how easily the chain **enters** Severe, not how long it **stays**.
-
-### 4.5 Multi-Step Probability Decay
-
-![N-step probability of Severe](../figures/B03_n_step_severe.png)
-
-Starting from a Severe winter day:
-
-| Days Ahead | 1 | 2 | 3 | 7 | 14 | 30 |
+| Days ahead | 1 | 2 | 3 | 7 | 14 | 30 |
 |---|---|---|---|---|---|---|
 | $P(\text{Severe})$ | 0.63 | 0.44 | 0.34 | 0.23 | 0.21 | 0.21 |
 
-Memory half-life (from the second eigenvalue): about 2 days in winter ($|\lambda_2| = 0.70$), about 6 days all-year ($|\lambda_2| = 0.90$).
+Memory fades within about a week (second eigenvalue 0.70 in winter). The winter stationary distribution gives $\pi_{\text{Severe}} = 0.206$ against 0.214 observed: **one winter day in five is Severe**. All-year, $1/\pi_5 = 11.5$ days, essentially the same quantity as the Poisson mean gap $1/\hat{\lambda} = 11.4$. Geometric spell means match the observed means for all five states (Severe 2.7 vs 2.7).
 
-### 4.6 Stationary Distribution
+**Order of the chain.** Within winter, a second-order chain adds nothing (Anderson–Goodman $G^2 = 39.8$, df = 45, $p = 0.69$; post-monsoon $p = 0.09$), and BIC picks order 1; the pooled test rejects order 1 only because it mixes seasons. Two Severe days in a row do not make a third more likely (0.65 vs 0.61, Fisher $p = 0.53$).
 
-![Stationary distribution comparison](../figures/B04_stationary.png)
+### 4.3 When the Smog Season Starts
 
-| State | All-Year $\pi$ | All-Year Observed | Winter $\pi$ | Winter Observed |
-|---|---|---|---|---|
-| G/S | 0.350 | 0.350 | 0.022 | 0.019 |
-| Moderate | 0.181 | 0.181 | 0.092 | 0.084 |
-| Poor | 0.124 | 0.124 | 0.125 | 0.121 |
-| Very Poor | 0.258 | 0.258 | 0.555 | 0.563 |
-| **Severe** | **0.087** | **0.087** | **0.206** | **0.214** |
+![First Severe day after 1 October: model and observed seasons](../figures/B06_first_severe_day.png)
 
-Mean recurrence time of Severe: $1/\pi_5 = 11.5$ days (all-year), essentially the same quantity as $1/\hat{\lambda} = 3{,}430/300 = 11.4$ days from the Poisson analysis. **One winter day in five is Severe** in the long run.
+Using monthly matrices from 1 October with Severe made absorbing, the chain predicts the first Severe day after about **29 days** from a Moderate start (the usual 1 October state). In the 10 observed seasons it came after 19–37 days (**mean 29.6**), and all 10 seasons had one by 15 November (model: 87–93%). Real start dates are more tightly bunched than predicted, because one October matrix spreads the late-October Diwali and crop-burning spike over the whole month.
 
-### 4.7 Spell Lengths
+### 4.4 Next-Day Forecasts (Fitted on 2016–2022, Tested on 2023–Sep 2026)
 
-![Spell length distributions](../figures/B05_spell_lengths.png)
-
-| State | Geometric Mean $1/(1-\hat{p}_{ii})$ | Observed Mean | Longest |
-|---|---|---|---|
-| Good/Satisfactory | 7.3 | 6.9 | 134 |
-| Moderate | 2.1 | 2.0 | 13 |
-| Poor | 1.8 | 1.8 | 7 |
-| Very Poor | 3.6 | 3.5 | 15 |
-| Severe | 2.7 | 2.7 | 17 |
-
-Geometric spell-length predictions match the observed means for every state.
-
-### 4.8 First Passage Time to Severe
-
-![First Severe day after October 1](../figures/B06_first_severe_day.png)
-
-Using monthly transition matrices from **1 October**, the chain predicts the first Severe day of the season after about **29 days** from a Moderate start (the typical 1 October state). In the 10 observed seasons the first Severe day came 19–37 days after 1 October (**mean 29.6**, median 30), and all 10 had a Severe day by 15 November (model: 87–93%). The model gets the typical date right, but real start dates are more tightly bunched: a single October matrix spreads the late-October Diwali and crop-burning spike over the whole month.
-
-Mean first-passage times to Severe for chains that stay in one regime (so the winter column assumes winter has already set in):
-
-| From | All-Year chain | Winter chain | Post-Monsoon chain |
-|---|---|---|---|
-| Good/Satisfactory | 53.0 days | 15.6 days | 23.4 days |
-| Moderate | 46.5 | 14.4 | 18.6 |
-| Poor | 39.6 | 13.2 | 13.5 |
-| Very Poor | 27.5 | 10.2 | 9.3 |
-
-### 4.9 Order of the Chain
-
-Anderson–Goodman likelihood-ratio tests:
-
-| Data | Order 0 vs 1 | Order 1 vs 2 |
-|---|---|---|
-| Pooled 2016–2025 | $p \approx 0$ | $p \approx 10^{-12}$ |
-| **Winter** | $p \approx 10^{-100}$ | **$p = 0.69$** ✓ |
-| **Post-monsoon** | $p \approx 10^{-148}$ | **$p = 0.09$** ✓ |
-
-Within winter and post-monsoon (which contain virtually all Severe days), **first order is adequate**; the pooled test rejects first order only because it mixes seasons. BIC picks order 1. Two consecutive Severe days do not make a third more likely ($P(S \mid S,S) = 0.65$ vs $P(S \mid \text{not } S, S) = 0.61$; Fisher $p = 0.53$).
-
-### 4.10 Out-of-Sample Validation
-
-![Calibration diagram](../figures/B07_calibration.png)
-
-Fitted on **2016–2022**, tested on 2023–Sep 2026 (1,333 transitions, 120 Severe days):
-
-| Model | Mean Log Score | Accuracy | Brier $P(\text{Severe})$ |
+| Model | Mean log score | Accuracy | Brier $P(\text{Severe})$ |
 |---|---|---|---|
 | Monthly category frequencies | −1.042 | 0.551 | 0.0598 |
 | Order 1, all-year | −0.903 | 0.647 | 0.0521 |
@@ -371,305 +126,135 @@ Fitted on **2016–2022**, tested on 2023–Sep 2026 (1,333 transitions, 120 Sev
 | Order 2, seasonal | −0.898 | 0.630 | 0.0509 |
 | Monthly NHPP (Section 3) | — | — | 0.0598 |
 
-> [!TIP]
-> The seasonal first-order Markov chain is the best model for next-day forecasts, beating the NHPP (Brier 0.051 vs 0.060) because it uses today's state. Section 5.7 shows that this advantage holds only one day ahead.
+The seasonal first-order chain gives the best next-day forecasts because it uses today's state.
 
 ---
 
-## 5. Model III — Simulation Engine & Validation (Rudraksh Kapil)
+## 5. Model III — Simulation and Validation (Rudraksh Kapil)
 
-### 5.1 Simulation Engine Architecture
+### 5.1 Simulation Engine
 
-Rudraksh Kapil combined both models in one simulation engine (`StochasticAirQualitySimulator`, notebook 04) supporting:
+One engine (`StochasticAirQualitySimulator`, notebook 04) simulates the HPP, monthly and compound NHPPs, and all-year, seasonal and monthly Markov chains on the real 3,653-day calendar with its missing-day mask. Markov paths are advanced for all replications at once by inverse-CDF sampling: take each path's row of today's matrix, form its cumulative sum, and choose the first state whose cumulative probability exceeds a uniform draw. Each model is replayed **2,000 times**.
 
-1. **Markov chains**: homogeneous all-year, seasonal, and monthly non-homogeneous
-2. **Poisson processes**: HPP, monthly NHPP, and compound NHPP
-3. **Calendar alignment**: simulations are mapped onto the same 3,653-day study calendar, preserving leap years, season changes and the historical missing-data mask
+**Parameter recovery.** Simulating from a known $p_{SS} = 0.625$ and re-estimating it (500 replicates per size): with $N = 200$ the mean estimate is 0.614 (SD 0.079, 93.2% coverage); with $N = 1{,}000$, 0.623 (SD 0.035, 94.4%); with $N = 10{,}000$, 0.625 (SD 0.010, 96.6%). Bias vanishes, the SD falls roughly as $N^{-1/2}$, and interval coverage stays near 95%.
 
-Markov paths are advanced for all replications at once by inverse-CDF sampling: for each path, take the row of the current matrix for today's state, form its cumulative sum, and choose the first state whose cumulative probability exceeds a uniform draw.
+### 5.2 Monthly Dispersion: No Model Matches
 
-### 5.2 Parameter Recovery Verification
+![Monthly dispersion index of simulated decades against the observed value](../figures/C03_monthly_dispersion_comparison.png)
 
-![Parameter recovery experiment](../figures/C01_parameter_recovery.png)
-
-Monte Carlo parameter recovery (500 replicates per sample size, true $p_{SS} = 0.625$):
-
-| Sample Size $N$ | Mean $\hat{p}_{SS}$ | Bias | Empirical SD | 95% CI Coverage |
-|---|---|---|---|---|
-| 200 | 0.614 | −0.011 | 0.079 | 93.2% |
-| 500 | 0.625 | −0.000 | 0.049 | 94.4% |
-| 1,000 | 0.623 | −0.002 | 0.035 | 94.4% |
-| 2,500 | 0.625 | −0.001 | 0.021 | 95.6% |
-| 5,000 | 0.625 | −0.000 | 0.016 | 93.8% |
-| 10,000 | 0.625 | +0.000 | 0.010 | 96.6% |
-
-The bias vanishes as $N$ grows, the standard deviation falls roughly as $N^{-1/2}$ (0.079 → 0.010 as $N$ rises fifty-fold), and interval coverage stays close to the nominal 95% (93–97%, within Monte Carlo error for 500 replicates).
-
-### 5.3 Comparative Sample Paths
-
-![Simulated vs observed cumulative paths](../figures/C02_simulated_vs_observed_paths.png)
-
-- **HPP**: a straight diagonal — misses the winter jumps and summer plateaus
-- **Monthly NHPP**: follows the annual staircase, with too little variation between realisations
-- **Compound NHPP**: reproduces clustering but with far too much variation
-- **Seasonal Markov chain**: realistic multi-day winter bursts with proper seasonal transitions
-
-### 5.4 Monthly Dispersion: No Model Matches
-
-![Monthly dispersion comparison](../figures/C03_monthly_dispersion_comparison.png)
-
-Observed monthly dispersion: $D_{\text{obs}} = 1.77$, where
-
-$$D = \frac{1}{M-k} \sum_{m=1}^{M} \frac{(n_m - \mu_m)^2}{\mu_m}$$
-
-with $\mu_m$ the monthly NHPP expectation (months with $\mu_m = 0$ excluded).
-
-| Model | Simulated Total (95% range) | Monthly $D$ (Mean, 95% range) | $P(D_{\text{sim}} \geq D_{\text{obs}})$ | Verdict |
-|---|---|---|---|---|
-| **Real data** | **300** | **1.77** | — | — |
-| HPP | 300 (267–336) | 10.6 (7.2–15.2) | 1.000 | Far too variable (ignores seasons) |
-| Monthly NHPP | 301 (269–334) | 1.1 (0.7–1.7) | 0.015 | Too regular |
-| Compound NHPP | 300 (231–379) | 8.2 (3.0–18.9) | 1.000 | Far too variable |
-| Seasonal Markov chain | 287 (228–345) | 20.3 (9.9–35.1) | 1.000 | Far too variable |
-| Monthly Markov chain | 299 (245–354) | 6.8 (2.4–15.8) | 0.996 | Too variable |
-
-**No model reproduces the observed dispersion.** The NHPP has no memory, so its monthly counts are too steady. A first-order chain has lag-$k$ autocorrelation $\rho_k = \rho^k$ with $\rho = p_{SS} - p_{\bar{S}S}$ (about $0.625 - 0.097 \approx 0.53$ in winter), which inflates the variance of a month's count by roughly $(1+\rho)/(1-\rho) \approx 3.2$; whole spells then pile into single months. The data sit in between: real Severe days cluster within a spell, but spells are spread more evenly across a winter than a simple chain expects. This points to a model in which the intensity itself varies from winter to winter (Section 9).
-
-### 5.5 Episode Lengths
-
-![Episode length survival curves](../figures/C04_episode_length_survival.png)
-
-| Episode Length $k$ | Real $P(L \geq k)$ (112 episodes) | Geometric $q^{k-1}$, $q = 0.627$ |
-|---|---|---|
-| $\geq 2$ | 0.607 | 0.627 |
-| $\geq 3$ | 0.295 | 0.393 |
-| $\geq 5$ | 0.134 | 0.154 |
-| $\geq 7$ | 0.071 | 0.061 |
-| $\geq 10$ | 0.018 (2 episodes) | 0.015 |
-
-**Goodness of fit (Markov chain vs real):** simulated mean episode length 2.64 days vs 2.68 observed; two-sample KS $D = 0.089$, $p = 0.32$, so the simulated and real episode lengths cannot be told apart. The independent NHPP produces far too few long episodes.
-
-The compound NHPP's episode lengths are not compared here: in the current simulator all of an episode's days are placed on its onset day, so its episode-length test (KS $p < 10^{-50}$ in notebook 04) is an artefact of the code, not a property of the model.
-
-### 5.6 Extreme Spells — Longest Winter Run
-
-![Extreme spell distribution](../figures/C05_extreme_spell_distribution.png)
-
-Longest run of consecutive Severe days in each December–February winter (11 real winters, 2015/16–2025/26; 20,000 simulated 90-day winters per model, the chain started from its winter stationary distribution):
-
-| Metric | Real Winters (n = 11) | Winter Markov Chain | Monthly NHPP |
+| Model | Simulated total (95% range) | Monthly $D$ (mean, 95% range) | $P(D_{\text{sim}} \ge 1.77)$ |
 |---|---|---|---|
-| Mean longest winter run | **6.3 days** | 5.9 days | 3.2 days |
-| $P(\text{run} \geq 7 \text{ days})$ | 36% (4 of 11) | 33% | 1.0% |
-| $P(\text{run} \geq 10 \text{ days})$ | 9% (1 of 11) | 8.6% | 0.04% |
-| $P(\text{run} \geq 17 \text{ days})$ | 1 of 11 | 0.25% | ≈ 0 |
+| **Real data** | **300** | **1.77** | — |
+| HPP | 300 (267–336) | 10.6 (7.2–15.2) | 1.000 |
+| Monthly NHPP | 301 (269–334) | 1.1 (0.7–1.7) | 0.015 |
+| Compound NHPP | 300 (231–379) | 8.2 (3.0–18.9) | 1.000 |
+| Seasonal Markov chain | 287 (228–345) | 20.3 (9.9–35.1) | 1.000 |
+| Monthly Markov chain | 299 (245–354) | 6.8 (2.4–15.8) | 0.996 |
 
-> [!NOTE]
-> Without memory, a week-long Severe run happens in about 1% of winters; the Markov chain gives 33%, close to the observed 4 of 11 winters. But the chain still makes the 17-day record (from 20 December 2018) a roughly 1-in-400-winter event, so the real tail is heavier than either model. With only 11 winters we do not estimate return levels beyond the length of the record.
+Every model gets the ten-year total right, but **none reproduces the dispersion**. The NHPP has no memory, so it is too steady. A first-order chain has lag-$k$ autocorrelation $\rho^k$ with $\rho = p_{SS} - p_{\bar{S}S} \approx 0.53$ in winter, inflating monthly variance by roughly $(1+\rho)/(1-\rho) \approx 3.2$, so it is too bursty. Real Severe days cluster within spells, but spells are spread more evenly across a winter than a simple chain expects.
 
-### 5.7 Multi-Step Forecast Verification (2023–2026)
+### 5.3 Episodes and Extreme Spells
 
-![Multi-step forecast skill](../figures/C06_multistep_forecast_skill.png)
+The Markov chain reproduces episode lengths: simulated mean 2.64 days against 2.68, and a two-sample KS test cannot separate them ($D = 0.089$, $p = 0.32$). The real episodes are slightly less geometric than the model ($P(L \ge 3)$ = 0.30 observed vs 0.39 geometric), with 2 episodes of 10 days or more. (The compound NHPP's episode lengths are not compared: in the current code all of an episode's days are placed on its onset day.)
 
-![Multi-step calibration](../figures/C07_multistep_calibration.png)
+![Longest Severe run per simulated Dec–Feb winter](../figures/C05_extreme_spell_distribution.png)
 
-Both models are refitted on 2016–2022. The Markov forecast is
+| Longest Dec–Feb run | Real (11 winters) | Winter Markov chain | Monthly NHPP |
+|---|---|---|---|
+| Mean | 6.3 days | 5.9 days | 3.2 days |
+| $P(\ge 7 \text{ days})$ | 36% (4 of 11) | 33% | 1.0% |
+| $P(\ge 10 \text{ days})$ | 9% (1 of 11) | 8.6% | 0.04% |
 
-$$P(X_{t+h} = \text{Severe} \mid X_t = i) = [P_{\text{season}}^h]_{i, \text{Severe}},$$
+Simulated with 20,000 winters per model. Without memory a week-long crisis almost never happens; the chain matches the real frequency. Yet the chain makes the 17-day record a roughly 1-in-400-winter event, so the real tail is heavier than either model.
 
-and the NHPP forecast is the monthly rate of the target day.
+### 5.4 Multi-Day Forecasts (2023–Sep 2026)
 
-| Horizon $h$ | Brier (Markov) | Brier (NHPP) | BSS vs climatology (Markov / NHPP) | AUC (Markov) | AUC (NHPP) |
-|---|---|---|---|---|---|
-| 1 day | **0.0508** | 0.0598 | **38.2%** / 27.3% | **0.931** | 0.897 |
-| 2 days | 0.0608 | **0.0597** | 25.9% / **27.1%** | **0.904** | 0.896 |
-| 3 days | 0.0623 | **0.0596** | 23.7% / **27.0%** | **0.900** | 0.895 |
-| 5 days | 0.0657 | **0.0592** | 18.9% / **26.8%** | 0.888 | **0.895** |
-| 7 days | 0.0666 | **0.0584** | 16.2% / **26.5%** | 0.871 | **0.894** |
-| 10 days | 0.0664 | **0.0574** | 14.6% / **26.2%** | 0.865 | **0.892** |
-| 14 days | 0.0679 | **0.0577** | 13.7% / **26.7%** | 0.814 | **0.895** |
+![Brier score and AUC against forecast horizon](../figures/C06_multistep_forecast_skill.png)
 
-The Markov chain has the lower Brier score **only one day ahead**; from two days on the monthly NHPP is better. The chain ranks days better (higher AUC) up to three days ahead. The reason is Chapman–Kolmogorov convergence: $P^h \to \pi$ within about a week, so the chain forgets today's state, while the NHPP keeps finer monthly detail. Use the chain for tomorrow and the NHPP beyond that.
+The Markov forecast is $[P_{\text{season}}^h]_{i,\text{Severe}}$; the NHPP forecast is the target month's rate.
 
-### 5.8 GRAP Policy Scenarios (Assumed Effects)
+| Horizon | 1 day | 2 days | 3 days | 5 days | 7 days | 14 days |
+|---|---|---|---|---|---|---|
+| Brier, Markov | **0.0508** | 0.0608 | 0.0623 | 0.0657 | 0.0666 | 0.0679 |
+| Brier, NHPP | 0.0598 | **0.0597** | **0.0596** | **0.0592** | **0.0584** | **0.0577** |
+| AUC, Markov | **0.931** | **0.904** | **0.900** | 0.888 | 0.871 | 0.814 |
+| AUC, NHPP | 0.897 | 0.896 | 0.895 | **0.895** | **0.894** | **0.895** |
 
-![Policy intervention simulation results](../figures/C08_policy_intervention_simulation.png)
+The chain has the lower Brier score **only one day ahead**, and the better ranking (AUC) up to three days. Because $P^h \to \pi$ within about a week, the chain forgets today; the monthly NHPP keeps finer seasonal detail. Both beat climatology at every horizon.
 
-3,000 simulated 90-day winters per scenario, using the winter matrix. **The effect sizes below are assumptions chosen to illustrate the mechanism, not estimates of what GRAP achieves.**
+### 5.5 Policy Scenarios (Assumed Effects)
 
-| Scenario | Winter Severe Days (Mean ± SD) | Change | Episodes ≥ 3 days | Crises ≥ 5 days | $P(\geq 1 \text{ crisis})$ |
-|---|---|---|---|---|---|
-| **Baseline** | 18.4 ± 7.2 | — | 2.69 | 1.02 | 66.3% |
-| Entry curb (−20% Very Poor → Severe) | 15.5 ± 6.8 | −16.0% | 2.25 (−16.2%) | 0.85 (−17.3%) | 58.8% |
-| Persistence curb (−15% Severe → Severe) | 15.4 ± 6.0 | −16.1% | 2.02 (−24.8%) | 0.56 (−44.8%) | 44.3% |
-| **Both** | **12.9 ± 5.6** | **−30.1%** | **1.68 (−37.6%)** | **0.46 (−55.0%)** | **37.7%** |
+3,000 simulated 90-day winters per scenario using the winter matrix. **The effect sizes are assumptions chosen to show the mechanism, not estimates of what GRAP achieves.**
 
-> [!IMPORTANT]
-> **Mechanism, not forecast:** for a similar cut in total Severe days, reducing persistence removes far more multi-day crises (−44.8% of 5-day crises) than reducing entry (−17.3%), because persistence multiplies into every extra day of a spell. Real effect sizes would have to be estimated, for example from GRAP activation dates.
+| Scenario | Severe days per winter | 5-day crises per winter | Winters with a 5-day crisis |
+|---|---|---|---|
+| Baseline | 18.4 ± 7.2 | 1.02 | 66.3% |
+| Entry curb (−20% Very Poor → Severe) | 15.5 (−16%) | 0.85 (−17%) | 58.8% |
+| Persistence curb (−15% Severe → Severe) | 15.4 (−16%) | 0.56 (−45%) | 44.3% |
+| Both | 12.9 (−30%) | 0.46 (−55%) | 37.7% |
+
+For a similar cut in total Severe days, reducing persistence removes far more multi-day crises than reducing entry, because persistence multiplies into every extra day of a spell.
 
 ---
 
 ## 6. Comparison of Theoretical and Empirical Results
 
-### 6.1 Cross-Model Consistency
-
-| Quantity | Poisson (Harsh Raj) | Markov (Vivian) | Simulation (Rudraksh Kapil) |
-|---|---|---|---|
-| $P(\text{Severe} \mid \text{Severe})$ | $\hat{q} = 188/300 = 0.627$ | $\hat{p}_{SS} = 188/298 = 0.631$ | Recovered without bias (Section 5.2) |
-| Mean Severe spell | 2.68 days | 2.71 days | 2.64 days (simulated) |
-| Mean recurrence time | $1/\hat{\lambda} = 11.4$ days | $1/\pi_5 = 11.5$ days | — |
-| Annual total | 31.9/year | $365 \times \pi_5 = 31.7$ | 300.7 per 10 years (NHPP) |
-
-The Poisson and Markov columns agree because they are computed from the same 300 Severe days: they confirm that the two analyses are coded consistently, not that two independent methods found the same answer.
-
-### 6.2 Theoretical Predictions vs Empirical Observations
-
-```mermaid
-flowchart LR
-    A["Theoretical<br/>Geometric(1−p_SS)<br/>Mean = 2.71 days"] --> B["Empirical<br/>112 episodes<br/>Mean = 2.68 days"]
-    C["Theoretical<br/>Stationary π_Severe = 0.087"] --> D["Empirical<br/>300/3430 = 0.087"]
-    E["Theoretical<br/>1/λ = 11.4 days"] --> F["Empirical<br/>1/π = 11.5 days"]
-    style A fill:#e1f5fe
-    style C fill:#e1f5fe
-    style E fill:#e1f5fe
-    style B fill:#c8e6c9
-    style D fill:#c8e6c9
-    style F fill:#c8e6c9
-```
-
-| Theoretical Prediction | Empirical Result | Agreement |
+| Theoretical result | Empirical check | Agreement |
 |---|---|---|
-| Geometric spell lengths $E[D] = 1/(1-p_{ii})$ | Matches for all 5 states (Section 4.7) | ✓ Good |
-| Stationary distribution $\pi = \pi P$ | Matches observed frequencies within 1% | ✓ Good |
-| $P^n$ convergence rate (eigenvalue 0.70 in winter) | Memory half-life about 2 days, gone by 14 days | ✓ Consistent |
-| NHPP 95% monthly PI coverage (nominal 95%) | Empirical coverage = 95.6% (45 months) | ✓ Good |
-| No linear trend in Severe rate | −0.4%/yr, CI includes zero | ✓ Confirmed |
-| First-order Markov sufficient within seasons | Anderson–Goodman $p = 0.69$ (winter) | ✓ Confirmed |
-| First Severe day about 29 days after 1 Oct | Observed mean = 29.6 days (10 seasons) | ✓ Good |
-| MLE standard error decays as $N^{-1/2}$ | Monte Carlo recovery confirms it | ✓ Verified |
-| Markov episode lengths match real episodes | KS $D = 0.089$, $p = 0.32$ | ✓ Good fit |
+| Geometric spells, $E[D] = 1/(1-p_{ii})$ | Matches observed means for all 5 states | ✓ |
+| Stationary distribution $\pi = \pi P$ | Within 1% of observed frequencies (winter Severe 0.206 vs 0.214) | ✓ |
+| $P^n \to \pi$ (eigenvalue 0.70 in winter) | Memory gone within about a week; explains the forecast crossover | ✓ |
+| NHPP 95% monthly intervals | 95.6% coverage on 45 unseen months | ✓ |
+| First-order chain within seasons | Anderson–Goodman $p = 0.69$ (winter) | ✓ |
+| First-passage time from 1 October | 29 days predicted vs 29.6 observed | ✓ |
+| MLE standard error $\propto N^{-1/2}$ | Confirmed by parameter recovery | ✓ |
+| Markov episode lengths | KS $p = 0.32$ against real episodes | ✓ |
 
-### 6.3 Where Theory and Data Diverge
+**Where theory and data diverge.** (i) No model matches the monthly dispersion of 1.77 (NHPP 1.1, Markov 6.8). (ii) 2022 (16 Severe days) and 2023 (44) fall outside the Poisson range; the Markov chain covers them only by being too bursty month to month. (iii) The 17-day record is far in the tail of the chain. (iv) The compound Poisson model is far too variable ($D = 8.2$).
 
-| Discrepancy | Model Expectation | Empirical Reality | Explanation |
-|---|---|---|---|
-| Monthly dispersion | NHPP $D \approx 1.1$; Markov $D \approx 6.8$ | $D_{\text{obs}} = 1.77$ | Clustering within spells, but spells spread more evenly across a winter than a chain implies |
-| Spell-length shape | Geometric: $P(L \geq 3) = 0.39$ | Observed 0.30; chi-square $p = 0.018$ | Fewer medium spells than geometric; longest 17 days |
-| Longest winter run | Markov: $P(\geq 17) \approx 0.25\%$ | 17-day run in 1 of 11 winters | Heavier extreme tail than the chain allows |
-| 2023 winter | NHPP 95% PI: 19–40 | Observed: 44 | Year-to-year meteorological variation exceeds the Poisson range |
-| Compound Poisson | Episodes add independently | Monthly $D = 8.2$ vs 1.77 | Far too variable |
+The two models are complementary:
 
-### 6.4 Model Selection Summary
-
-| Question | Best Model | Why |
+| Question | Best model | Evidence |
 |---|---|---|
-| How many Severe days per month/winter? | **Monthly NHPP** | Best coverage (95.6%), lowest MAE (1.09), best log score |
-| Will tomorrow be Severe? | **Seasonal Markov chain** | Uses today's state; Brier 0.051 vs 0.060 (NHPP) |
-| Severe in 2 or more days' time? | **Monthly NHPP** | Lower Brier score from $h = 2$ (Section 5.7) |
-| How long will a Severe spell last? | **Markov chain** | Episode lengths match (KS $p = 0.32$); NHPP gives almost no long runs |
-| Chance of a week-long winter crisis? | **Winter Markov chain** | 33% vs 36% observed; NHPP 1% |
-| Policy what-if? | **Markov simulation** | Direct control of entry and persistence probabilities (effects assumed) |
+| How many Severe days this month or winter? | Monthly NHPP | 95.6% coverage, best log score, MAE 1.09 |
+| Will tomorrow be Severe? | Seasonal Markov chain | Brier 0.051 vs 0.060 |
+| Severe in 2 or more days? | Monthly NHPP | Lower Brier score from $h = 2$ |
+| How long will a spell last? Chance of a week-long crisis? | Markov chain | Episode KS $p = 0.32$; 33% vs 36% observed |
+| Which policy lever matters most? | Markov simulation | Direct control of entry and persistence (assumed effects) |
 
 ---
 
-## 7. Interpretation in the Context of Application
+## 7. Interpretation
 
-### 7.1 Environmental & Public Health Implications
-
-1. **Severe days are a winter phenomenon.** 94% of Severe days occur in November–January, driven by winter meteorology (low mixing height, calm winds) combined with post-harvest crop burning. This is not a year-round random risk but a predictable seasonal crisis.
-
-2. **No improvement over the decade.** Despite GRAP and other measures, the linear trend in Severe-day rates is −0.4% per year (95% CI: −5.6% to +5.0%), statistically indistinguishable from zero at this station.
-
-3. **Severe days cluster.** With a persistence probability of 0.63, once air quality reaches Severe it stays there for 2.7 days on average, and in about one winter in three there is a run of a week or more. Multi-day crises have cumulative health impacts beyond isolated bad days.
-
-4. **One winter day in five is Severe.** The winter stationary distribution gives a Severe day about every 5 days on average; in the worst winters, runs of 10–17 consecutive Severe days occur.
-
-### 7.2 Policy Decision Support
-
-The policy scenarios use **assumed** effect sizes, so they show mechanisms rather than predictions:
-
-- **Shortening spells matters most for the worst episodes.** A 15% cut in Severe persistence removes about 45% of 5-day crises, about 2.6 times the effect of a 20% cut in the chance of entering Severe.
-- **Combined measures add up.** Applying both assumed effects cuts winter Severe days by about 30% and 5-day crises by about 55%.
-- **The season's start is predictable.** The first Severe day typically arrives about 29–30 days after 1 October (late October to early November), giving a window to prepare emergency measures.
-
-### 7.3 Complementary Models for Different Decisions
-
-```mermaid
-flowchart TD
-    Q["Decision Question"] --> A["How many Severe days<br/>this month/winter?"]
-    Q --> B["Will tomorrow<br/>be Severe?"]
-    Q --> C["Which policy lever<br/>matters most?"]
-    A --> MA["Monthly NHPP<br/>(Poisson Process)"]
-    B --> MB["Seasonal Markov Chain<br/>(1st Order)"]
-    C --> MC["Monte Carlo<br/>Simulation Engine"]
-    MA --> RA["Budget planning<br/>Resource allocation"]
-    MB --> RB["Daily health advisories<br/>School closures"]
-    MC --> RC["GRAP policy design<br/>(assumed effects)"]
-    style MA fill:#bbdefb
-    style MB fill:#c8e6c9
-    style MC fill:#fff9c4
-```
+1. **Severe air is a predictable seasonal crisis.** 94% of Severe days fall in November–January, driven by low mixing heights, calm winds and post-harvest crop burning. The first Severe day typically arrives around 1 November, leaving October to prepare.
+2. **No improvement at this station.** The trend over 2016–2025 is −0.4% a year with a confidence interval spanning zero, despite GRAP.
+3. **Severe days come in runs.** With persistence 0.63, a Severe day lasts 2.7 days on average, one winter day in five is Severe, and about one winter in three has a run of a week or more. Multi-day episodes carry cumulative health costs beyond isolated bad days.
+4. **Different questions need different models.** Seasonal counts for planning come from the NHPP; next-day warnings come from the Markov chain.
+5. **Ending spells faster matters most** for the worst episodes (Section 5.5), although real effect sizes would have to be estimated.
 
 ---
 
-## 8. Limitations
+## 8. Limitations and Extensions
 
-### 8.1 Data Limitations
-- **Single station:** R K Puram is one residential site in south Delhi; other parts of Delhi and the wider NCR may behave differently
-- **Daily resolution:** At most one event per day, so the Poisson process is an approximation
-- **Missing data:** 6.1% of days missing and 5.3% interpolated; interpolation can create or remove threshold crossings
-- **Short record:** 10 years (11 December–February winters) limits extreme-value estimation
+**Limitations.** One station at daily resolution; 6.1% of days missing and 5.3% interpolated (interpolation can create or remove threshold crossings); only 11 winters for extremes. No weather or fire covariates, so the models describe patterns, not causes. Matrices are constant within a season or month, which blurs the sharp October–November transition. Neither model captures year-to-year variation or the monthly dispersion. Categories ignore how far PM2.5 is within a band. The policy effects are assumed. In notebook 04 the compound simulator places an episode's days on its onset day, which invalidates that model's episode-length comparison only.
 
-### 8.2 Model Limitations
-- **No weather covariates:** The models are purely statistical; wind speed, mixing height, temperature inversions and regional fire counts are not included, so they describe patterns rather than causes
-- **Constant matrices within seasons:** Transition matrices are constant within each season or month; in reality conditions change sharply (for example, October starts clean and ends Severe)
-- **Year-to-year variability:** 2022 (clean) and 2023 (44 Severe days) fall outside the Poisson model's range; the Markov chain covers them but is too bursty month to month, so neither model gets year-to-year variation right
-- **Monthly dispersion:** No model reproduces the observed dispersion of 1.77 (Section 5.4)
-- **Threshold sensitivity:** Categories ignore how far PM2.5 is within a class (251 and 700 µg/m³ are both "Severe")
-- **First-order assumption:** Justified within seasons; the pooled data show second-order effects only because they mix seasons
-
-### 8.3 Policy Simulation Limitations
-- **Assumed effects:** The scenarios assume specific percentage changes in transition probabilities; these are not estimated and may not match what real interventions achieve
-- **No behavioural response:** Real interventions may change behaviour in ways not captured by changing a transition matrix
-
-### 8.4 Code Issue to Fix
-- The compound NHPP simulator in notebook 04 places all of an episode's days on its onset day, so episode-length comparisons for that model are not valid (Section 5.5). Its total and monthly-dispersion results are unaffected.
+**Extensions.** A Cox (doubly stochastic) process or hidden Markov model with clean and smoggy regimes, for year-to-year variation; transition probabilities driven by wind, mixing height and fire counts (multinomial-logistic Markov chain); a Hawkes process for self-exciting clustering; weekly-varying matrices for October–November; several stations across Delhi NCR; and policy effects estimated from real GRAP activation dates.
 
 ---
 
-## 9. Possible Extensions
-
-| Extension | Description | Benefit |
-|---|---|---|
-| **Weather covariates** | Poisson regression or multinomial-logistic Markov chain with boundary-layer height, wind speed and fire counts | Better day-to-day predictions; causes, not just patterns |
-| **Cox (doubly stochastic) process** | Random intensity to capture year-to-year variation (e.g. 2023) | More realistic uncertainty and dispersion |
-| **Hawkes (self-exciting) process** | Self-exciting kernel for clustering without the Markov assumption | Flexible clustering model |
-| **Hidden Markov model** | Latent meteorological regimes (e.g. inversion/ventilation) driving observed AQI | Regime identification |
-| **Continuous-state model** | Autoregressive model for $\log(\text{PM2.5})$ instead of categories | Uses the full concentration information |
-| **Spatial model** | Multi-station analysis across Delhi NCR | Spatial risk assessment |
-| **Weekly-varying Markov chain** | Transition matrices that change within October–November | Sharper season-start predictions |
-| **Estimated policy effects** | Compare transitions before and after real GRAP activation dates | Replace assumed effects with estimates |
-| **Bayesian framework** | Prior information and posterior updating for real-time forecasting | Online decision support |
-
----
-
-## 10. References
+## 9. References
 
 1. Anderson, T. W., Goodman, L. A. (1957), "Statistical inference about Markov chains", *Annals of Mathematical Statistics* 28(1), 89–110.
 2. Achcar, J. A., Fernández-Bremauntz, A. A., Rodrigues, E. R., Tzintzun, G. (2008), "Estimating the number of ozone peaks in Mexico City using a non-homogeneous Poisson model", *Environmetrics* 19(5), 469–485.
-3. Asmussen, S. (2003), *Applied Probability and Queues*, Springer.
-4. Brier, G. W. (1950), "Verification of forecasts expressed in terms of probability", *Monthly Weather Review* 78(1), 1–3.
-5. Brown, E. N., Barbieri, R., Ventura, V., Kass, R. E., Frank, L. M. (2002), "The time-rescaling theorem and its application to neural spike train data analysis", *Neural Computation* 14(2), 325–346.
-6. Central Pollution Control Board, *National Air Quality Index* (2014) — AQI breakpoints.
-7. CPCB CCR, *CAAQMS Data Repository*, https://airquality.cpcb.gov.in/ccr/ (accessed Oct 2026).
-8. Coles, S. (2001), *An Introduction to Statistical Modeling of Extreme Values*, Springer.
-9. Commission for Air Quality Management in NCR (CAQM) (2022), *Graded Response Action Plan (GRAP) for NCR*, Government of India.
-10. Garwood, F. (1936), "Fiducial limits for the Poisson distribution", *Biometrika* 28, 437–442.
-11. Guttorp, P. (1995), *Stochastic Modeling of Scientific Data*, Chapman & Hall/CRC.
-12. Katz, R. W. (1981), "On some criteria for estimating the order of a Markov chain", *Technometrics* 23(3), 243–249.
-13. Ross, S. M., *Introduction to Probability Models*, Academic Press.
-14. Wilks, D. S. (2011), *Statistical Methods in the Atmospheric Sciences*, Academic Press.
-15. World Health Organization (2021), *WHO Global Air Quality Guidelines*, Geneva.
+3. Brier, G. W. (1950), "Verification of forecasts expressed in terms of probability", *Monthly Weather Review* 78(1), 1–3.
+4. Brown, E. N., Barbieri, R., Ventura, V., Kass, R. E., Frank, L. M. (2002), "The time-rescaling theorem and its application to neural spike train data analysis", *Neural Computation* 14(2), 325–346.
+5. Central Pollution Control Board (2014), *National Air Quality Index*; CPCB CCR, *CAAQMS Data Repository*, https://airquality.cpcb.gov.in/ccr/ (accessed Oct 2026).
+6. Commission for Air Quality Management in NCR (2022), *Graded Response Action Plan (GRAP) for NCR*, Government of India.
+7. Garwood, F. (1936), "Fiducial limits for the Poisson distribution", *Biometrika* 28, 437–442.
+8. Guttorp, P. (1995), *Stochastic Modeling of Scientific Data*, Chapman & Hall/CRC.
+9. Ross, S. M., *Introduction to Probability Models*, Academic Press.
+10. Wilks, D. S. (2011), *Statistical Methods in the Atmospheric Sciences*, Academic Press.
+11. World Health Organization (2021), *WHO Global Air Quality Guidelines*, Geneva.
 
 ---
 
@@ -677,6 +262,6 @@ flowchart TD
 
 | Member | Contribution |
 |---|---|
-| **Harsh Raj** | Downloaded and cleaned the CPCB data and produced the shared daily dataset; exploratory analysis and threshold selection; built the homogeneous, monthly and compound Poisson models (estimation, likelihood-ratio tests, time-rescaling, simulation, out-of-sample validation) — notebooks 01–02 |
-| **Vivian** | Formulated and estimated the Markov chain on AQI categories (all-year, seasonal and monthly matrices); derived $n$-step probabilities, the stationary distribution, spell lengths and first-passage times, including the season-start model; tested time-homogeneity and chain order; next-day out-of-sample validation against the Poisson model — notebook 03 |
-| **Rudraksh Kapil** | Designed the shared `StochasticAirQualitySimulator`; Monte Carlo parameter recovery; dispersion and episode-length comparisons; extreme-spell analysis; multi-step forecast verification; GRAP policy scenarios — notebook 04 |
+| **Harsh Raj** | CPCB data download and cleaning; shared daily dataset; exploratory analysis and threshold choice; homogeneous, monthly and compound Poisson models with likelihood-ratio, time-rescaling and out-of-sample tests (notebooks 01–02) |
+| **Vivian** | Five-state Markov chain with all-year, seasonal and monthly matrices; $n$-step, stationary, spell-length and first-passage results including the season-start model; homogeneity and order tests; next-day validation (notebook 03) |
+| **Rudraksh Kapil** | Shared simulation engine; parameter recovery; dispersion and episode comparisons; extreme spells; multi-day forecast verification; policy scenarios (notebook 04) |
