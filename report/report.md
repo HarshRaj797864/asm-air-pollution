@@ -184,6 +184,8 @@ Rudraksh Kapil combined both models in one Python simulation engine (`Stochastic
 
 Monte Carlo parameter recovery (500 replicates per size, true $p_{SS} = 0.625$, $N$ = 200 to 10,000) confirms the estimator behaves as theory predicts: the bias vanishes (mean estimate 0.614 at $N = 200$, 0.625 at $N = 10{,}000$), the standard deviation falls roughly as $N^{-1/2}$ (0.079 → 0.010), and 95% interval coverage stays between 93.2% and 96.6%, within Monte Carlo error of the nominal level.
 
+![Parameter recovery: bias, standard-error decay and interval coverage](../figures/C01_parameter_recovery.png)
+
 
 ### 7.2 Comparative Simulation: Monthly Dispersion
 
@@ -241,6 +243,8 @@ The Markov chain has the lower Brier score **only one day ahead** (from two days
 | Persistence curb (−15% Severe → Severe) | 15.4 | −16% | 0.56 (−45%) | 44.3% |
 | Combined | 12.9 | −30% | 0.46 (−55%) | 37.7% |
 
+
+![Policy scenarios: Severe days and multi-day crises per simulated winter](../figures/C08_policy_intervention_simulation.png)
 
 > [!IMPORTANT]
 > **Mechanism, not forecast:** for a similar cut in total Severe days, reducing persistence removes about 45% of 5-day crises, about 2.6 times the effect of the entry curb, because persistence multiplies into every extra day of a spell. Combined, the assumed measures cut Severe days by 30% and the chance of a 5-day crisis from 66% to 38%. Real effect sizes would have to be estimated, for example from GRAP activation dates.
@@ -336,8 +340,6 @@ Severe air-pollution days in Delhi are well described by two complementary stoch
 | **Vivian Mathew** | Five-state Markov chain with all-year, seasonal and monthly matrices; $n$-step, stationary, spell-length and first-passage results including the season-start model; homogeneity and order tests; next-day validation (notebook 03) |
 | **Rudraksh Kapil** | Shared simulation engine; parameter recovery; dispersion and episode comparisons; extreme spells; multi-day forecast verification; policy scenarios (notebook 04) |
 
-<div style="break-before: page"></div>
-
 ## Appendix A — Code
 
 All code is in the public repository **github.com/HarshRaj797864/asm-air-pollution** and in the submitted zip folder. Install the packages in `requirements.txt`, then run the notebooks in order from the `notebooks/` folder; each runs in under a minute with a fixed seed.
@@ -349,7 +351,7 @@ All code is in the public repository **github.com/HarshRaj797864/asm-air-polluti
 | `03_markov_chain.ipynb` | Transition matrices (all-year, seasonal, monthly), $n$-step and stationary laws, spells, first passage, order tests, next-day validation | `results/B01_*.json`, `markov_params.json`, figures B01–B07 |
 | `04_simulation_validation.ipynb` | Shared simulation engine, parameter recovery, dispersion and episode comparisons, extreme spells, multi-day forecasts, policy scenarios | `results/C01_*.json`, `C02_*.json`, figures C01–C08 |
 
-Key functions, copied from the notebooks:
+Two key functions, copied from the notebooks:
 
 **Exact Poisson rate interval (notebook 02)**
 
@@ -359,35 +361,6 @@ def rate_ci(n, T, alpha=0.05):
     lo = 0.0 if n == 0 else stats.chi2.ppf(alpha / 2, 2 * n) / 2
     hi = stats.chi2.ppf(1 - alpha / 2, 2 * n + 2) / 2
     return n / T, lo / T, hi / T
-```
-
-**Pearson dispersion index (notebook 02)**
-
-```python
-def pearson_dispersion(n, mu, n_params):
-    """Pearson X^2 / df. Equals about 1 if counts are Poisson with means mu.
-    Cells with a fitted mean of 0 (months whose estimated rate is 0) carry no information,
-    so they are dropped; n_params counts only the non-zero rate parameters."""
-    n, mu = np.asarray(n, float), np.asarray(mu, float)
-    keep = mu > 0
-    x2 = float(np.sum((n[keep] - mu[keep]) ** 2 / mu[keep]))
-    dof = int(keep.sum()) - n_params
-    return x2 / dof, x2, dof, float(stats.chi2.sf(x2, dof))
-```
-
-**First-passage distribution with monthly matrices (notebook 03)**
-
-```python
-def first_passage_cdf(start_state, dates, P_by_month, target=SEV):
-    """P(first visit to `target` is on or before each date), starting the day before dates[0]."""
-    v = np.zeros(K)
-    v[start_state] = 1.0
-    cdf = []
-    for d in dates:
-        v = v @ P_by_month[d.month]
-        v[target] = 0.0                                  # absorbed mass = already hit
-        cdf.append(1 - v.sum())
-    return np.array(cdf)
 ```
 
 **Vectorised Markov simulation (notebook 04, StochasticAirQualitySimulator)**
